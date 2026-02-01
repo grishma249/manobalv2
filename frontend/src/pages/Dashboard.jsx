@@ -1,6 +1,7 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import Navigation from '../components/Navigation'
 import './Dashboard.css'
 
 const Dashboard = () => {
@@ -34,21 +35,7 @@ const Dashboard = () => {
 
   return (
     <div className="dashboard-page">
-      <nav className="dashboard-nav">
-        <div className="container">
-          <div className="nav-content">
-            <h1 className="logo">Manobal Nepal</h1>
-            <div className="nav-actions">
-              <span className="user-info">
-                {user?.name} ({getRoleDisplayName(user?.role)})
-              </span>
-              <button onClick={handleLogout} className="btn btn-outline">
-                Logout
-              </button>
-            </div>
-          </div>
-        </div>
-      </nav>
+      <Navigation />
 
       <main className="dashboard-content">
         <div className="container">

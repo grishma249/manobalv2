@@ -3,26 +3,8 @@
   background-color: #f5f5f5;
 }
 
-.dashboard-nav {
-  background: white;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  padding: 20px 0;
-  margin-bottom: 30px;
-}
-
-.nav-actions {
-  display: flex;
-  align-items: center;
-  gap: 20px;
-}
-
-.user-info {
-  color: #666;
-  font-weight: 500;
-}
-
 .dashboard-content {
-  padding: 20px 0 40px;
+  padding: 40px 0 60px;
 }
 
 .dashboard-header {
@@ -42,10 +24,16 @@
 
 .dashboard-card {
   background: white;
-  border-radius: 12px;
-  padding: 30px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  margin-bottom: 20px;
+  border-radius: 16px;
+  padding: 32px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  margin-bottom: 24px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.dashboard-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 30px rgba(0, 0, 0, 0.12);
 }
 
 .dashboard-card h3 {

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import Navigation from '../components/Navigation'
 import './Auth.css'
 
 const Register = () => {
@@ -105,6 +106,7 @@ const Register = () => {
 
   return (
     <div className="auth-page">
+      <Navigation />
       <div className="auth-container">
         <div className="auth-header">
           <h1>Register for Manobal Nepal</h1>
