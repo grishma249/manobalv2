@@ -1,17 +1,10 @@
 import React from 'react'
-import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import Navigation from '../components/Navigation'
+import AppShell from '../components/AppShell'
 import './Dashboard.css'
 
 const Dashboard = () => {
-  const { user, logout } = useAuth()
-  const navigate = useNavigate()
-
-  const handleLogout = () => {
-    logout()
-    navigate('/')
-  }
+  const { user } = useAuth()
 
   const getRoleDisplayName = (role) => {
     const roleMap = {
@@ -35,10 +28,8 @@ const Dashboard = () => {
 
   return (
     <div className="dashboard-page">
-      <Navigation />
-
-      <main className="dashboard-content">
-        <div className="container">
+      <AppShell>
+        <div className="dashboard-content container">
           <div className="dashboard-header">
             <h2>Welcome, {user?.name}!</h2>
             <p className="dashboard-subtitle">{getWelcomeMessage(user?.role)}</p>
@@ -102,7 +93,7 @@ const Dashboard = () => {
             </ul>
           </div>
         </div>
-      </main>
+      </AppShell>
     </div>
   )
 }

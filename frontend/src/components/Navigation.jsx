@@ -33,6 +33,8 @@ const Navigation = () => {
     ? [
         { path: '/dashboard', label: 'Dashboard', roles: ['admin', 'donor', 'volunteer', 'school'] },
         { path: '/events', label: 'Events', roles: ['admin', 'volunteer', 'school'] },
+        { path: '/my-events', label: 'My Events', roles: ['volunteer'] },
+        { path: '/school/request-event', label: 'Request Event', roles: ['school'] },
         { path: '/donations', label: 'Donations', roles: ['admin', 'donor'] },
         { path: '/volunteers', label: 'Volunteers', roles: ['admin'] },
         { path: '/profile', label: 'Profile', roles: ['admin', 'donor', 'volunteer', 'school'] },
@@ -78,6 +80,9 @@ const Navigation = () => {
             <>
               <Link to="/about" className={`nav-link ${isActive('/about')}`}>
                 About
+              </Link>
+              <Link to="/events/public" className={`nav-link ${isActive('/events/public')}`}>
+                Events
               </Link>
               <Link to="/contact" className={`nav-link ${isActive('/contact')}`}>
                 Contact
@@ -133,6 +138,13 @@ const Navigation = () => {
                 onClick={() => setMobileMenuOpen(false)}
               >
                 About
+              </Link>
+              <Link
+                to="/events/public"
+                className={`mobile-nav-link ${isActive('/events/public')}`}
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Events
               </Link>
               <Link
                 to="/contact"

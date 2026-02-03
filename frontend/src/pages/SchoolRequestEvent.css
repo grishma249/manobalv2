@@ -1,10 +1,10 @@
-.donations-page {
+.school-request-page {
   min-height: 100vh;
   background: #fafafa;
 }
 
 .page-header {
-  background: linear-gradient(135deg, #FF6B6B 0%, #c92a2a 100%);
+  background: linear-gradient(135deg, #95E1D3 0%, #27a39b 100%);
   color: white;
   padding: 100px 0 60px;
   text-align: center;
@@ -25,39 +25,30 @@
   padding: 60px 0;
 }
 
-.donations-layout {
+.request-layout {
   display: grid;
-  grid-template-columns: 1.4fr 1fr;
+  grid-template-columns: 1.3fr 1fr;
   gap: 32px;
 }
 
-.donation-forms {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-}
-
-.donation-card {
+.request-form-card,
+.request-status-card {
   background: white;
   padding: 28px 24px;
   border-radius: 16px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
 }
 
-.donation-card h2 {
+.request-form-card h2,
+.request-status-card h2 {
   font-size: 22px;
   margin-bottom: 10px;
-  color: #1a1a1a;
 }
 
-.donation-help {
+.help-text {
   font-size: 14px;
   color: #777;
   margin-bottom: 16px;
-}
-
-.donation-history .donation-card {
-  height: 100%;
 }
 
 .table-wrapper {
@@ -84,8 +75,9 @@
 }
 
 @media (max-width: 992px) {
-  .donations-layout {
+  .request-layout {
     grid-template-columns: 1fr;
   }
 }
+
 

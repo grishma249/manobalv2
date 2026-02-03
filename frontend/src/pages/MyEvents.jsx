@@ -1,25 +1,25 @@
 import React from 'react'
 import AppShell from '../components/AppShell'
-import './Volunteers.css'
+import './MyEvents.css'
 
-const Volunteers = () => {
+const MyEvents = () => {
   return (
-    <div className="volunteers-page">
+    <div className="my-events-page">
       <AppShell>
         <div className="page-header">
           <div className="container">
-            <h1>Volunteers</h1>
-            <p>Manage volunteers and track participation</p>
+            <h1>My Events</h1>
+            <p>View the events you have registered for and track attendance.</p>
           </div>
         </div>
         <div className="page-content">
           <div className="container">
             <div className="coming-soon-card">
-              <div className="coming-soon-icon">👥</div>
-              <h2>Volunteer Management</h2>
+              <div className="coming-soon-icon">🗂️</div>
+              <h2>Registered Events</h2>
               <p>
-                View registered volunteers, assign participation, and mark attendance after
-                event completion.
+                In the full version, this page will show your upcoming and past events,
+                including attendance status and feedback options.
               </p>
               <p className="coming-soon-text">This feature is coming soon!</p>
             </div>
@@ -30,5 +30,6 @@ const Volunteers = () => {
   )
 }
 
-export default Volunteers
+export default MyEvents
+
 
