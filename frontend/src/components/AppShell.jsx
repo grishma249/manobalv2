@@ -14,13 +14,19 @@ const AppShell = ({ children }) => {
 
   const sidebarLinks = [
     {
-      path: '/dashboard',
+      path: role === 'admin' ? '/admin/dashboard' : '/dashboard',
       label: 'Dashboard',
       roles: ['admin', 'donor', 'volunteer', 'school'],
       icon: '🏠',
     },
     {
-      path: '/events',
+      path: '/admin/users',
+      label: 'User Management',
+      roles: ['admin'],
+      icon: '👥',
+    },
+    {
+      path: role === 'admin' ? '/admin/events' : '/events',
       label: role === 'volunteer' ? 'Event Opportunities' : 'Events',
       roles: ['admin', 'volunteer', 'school'],
       icon: '📅',

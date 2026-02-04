@@ -16,6 +16,9 @@ import PublicEvents from './pages/PublicEvents'
 import MyEvents from './pages/MyEvents'
 import SchoolRequestEvent from './pages/SchoolRequestEvent'
 import Forbidden from './pages/Forbidden'
+import AdminDashboard from './pages/AdminDashboard'
+import AdminUserManagement from './pages/AdminUserManagement'
+import AdminEvents from './pages/AdminEvents'
 import './App.css'
 
 function App() {
@@ -41,11 +44,36 @@ function App() {
               </ProtectedRoute>
             }
           />
+          {/* Admin routes */}
+          <Route
+            path="/admin/dashboard"
+            element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <AdminDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/users"
+            element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <AdminUserManagement />
+              </ProtectedRoute>
+            }
+          />
           <Route
             path="/events"
             element={
               <ProtectedRoute allowedRoles={['admin', 'volunteer', 'school']}>
                 <Events />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/events"
+            element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <AdminEvents />
               </ProtectedRoute>
             }
           />

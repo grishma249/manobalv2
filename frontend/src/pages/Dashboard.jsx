@@ -1,10 +1,19 @@
-import React from 'react'
+import React, { useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import AppShell from '../components/AppShell'
 import './Dashboard.css'
 
 const Dashboard = () => {
   const { user } = useAuth()
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    // Redirect admin users to admin dashboard
+    if (user?.role === 'admin') {
+      navigate('/admin/dashboard', { replace: true })
+    }
+  }, [user, navigate])
 
   const getRoleDisplayName = (role) => {
     const roleMap = {

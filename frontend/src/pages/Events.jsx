@@ -1,10 +1,19 @@
-import React from 'react'
+import React, { useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import AppShell from '../components/AppShell'
 import { useAuth } from '../context/AuthContext'
 import './Events.css'
 
 const Events = () => {
   const { user } = useAuth()
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    // Redirect admin users to admin events page
+    if (user?.role === 'admin') {
+      navigate('/admin/events', { replace: true })
+    }
+  }, [user, navigate])
 
   const isVolunteer = user?.role === 'volunteer'
   const isSchool = user?.role === 'school'
