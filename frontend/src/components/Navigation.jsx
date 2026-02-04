@@ -29,22 +29,8 @@ const Navigation = () => {
     return location.pathname === path ? 'active' : ''
   }
 
-  const navLinks = isAuthenticated
-    ? [
-        { path: '/dashboard', label: 'Dashboard', roles: ['admin', 'donor', 'volunteer', 'school'] },
-        { path: '/events', label: 'Events', roles: ['admin', 'volunteer', 'school'] },
-        { path: '/my-events', label: 'My Events', roles: ['volunteer'] },
-        { path: '/school/request-event', label: 'Request Event', roles: ['school'] },
-        { path: '/donations', label: 'Donations', roles: ['admin', 'donor'] },
-        { path: '/volunteers', label: 'Volunteers', roles: ['admin'] },
-        { path: '/profile', label: 'Profile', roles: ['admin', 'donor', 'volunteer', 'school'] },
-      ]
-    : []
-
-  const filteredNavLinks = navLinks.filter((link) => {
-    if (!isAuthenticated || !user) return false
-    return link.roles.includes(user.role)
-  })
+  // When authenticated, main page navigation is handled by the sidebar (AppShell).
+  // Top bar shows only branding, user info and logout.
 
   return (
     <nav className="main-nav">
@@ -58,16 +44,6 @@ const Navigation = () => {
         <div className="nav-menu">
           {isAuthenticated ? (
             <>
-              {filteredNavLinks.map((link) => (
-                <Link
-                  key={link.path}
-                  to={link.path}
-                  className={`nav-link ${isActive(link.path)}`}
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  {link.label}
-                </Link>
-              ))}
               <div className="nav-user">
                 <span className="user-name">{user?.name}</span>
                 <span className="user-role">{getRoleDisplayName(user?.role)}</span>
@@ -112,16 +88,6 @@ const Navigation = () => {
         <div className="mobile-menu">
           {isAuthenticated ? (
             <>
-              {filteredNavLinks.map((link) => (
-                <Link
-                  key={link.path}
-                  to={link.path}
-                  className={`mobile-nav-link ${isActive(link.path)}`}
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  {link.label}
-                </Link>
-              ))}
               <div className="mobile-user-info">
                 <p className="mobile-user-name">{user?.name}</p>
                 <p className="mobile-user-role">{getRoleDisplayName(user?.role)}</p>
