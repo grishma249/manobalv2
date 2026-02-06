@@ -409,7 +409,7 @@ router.get(
   '/donations',
   [
     query('type').optional().isIn(['monetary', 'physical']),
-    query('status').optional().isIn(['pending', 'verified', 'received']),
+    query('status').optional().isIn(['pending', 'completed', 'verified', 'cancelled']),
     query('page').optional().isInt({ min: 1 }),
     query('limit').optional().isInt({ min: 1, max: 100 }),
   ],
@@ -459,8 +459,8 @@ router.patch(
   '/donations/:id/verify',
   [
     body('status')
-      .isIn(['verified', 'received'])
-      .withMessage('Status must be verified or received'),
+      .isIn(['verified', 'completed'])
+      .withMessage('Status must be verified or completed'),
   ],
   async (req, res) => {
     try {

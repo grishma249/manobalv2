@@ -46,8 +46,14 @@ const donationSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ['pending', 'verified', 'received'],
+      enum: ['pending', 'completed', 'verified', 'cancelled'],
       default: 'pending',
+    },
+    transactionRef: {
+      type: String,
+    },
+    dropoffDetails: {
+      type: String,
     },
     verifiedBy: {
       type: mongoose.Schema.Types.ObjectId,

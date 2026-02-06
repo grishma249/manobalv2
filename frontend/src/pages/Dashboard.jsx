@@ -1,12 +1,15 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import axios from 'axios'
 import AppShell from '../components/AppShell'
 import './Dashboard.css'
 
 const Dashboard = () => {
   const { user } = useAuth()
   const navigate = useNavigate()
+  const [donationSummary, setDonationSummary] = useState(null)
+  const [donationLoading, setDonationLoading] = useState(false)
 
   useEffect(() => {
     // Redirect admin users to admin dashboard
@@ -14,6 +17,25 @@ const Dashboard = () => {
       navigate('/admin/dashboard', { replace: true })
     }
   }, [user, navigate])
+
+  useEffect(() => {
+    const fetchDonationSummary = async () => {
+      try {
+        setDonationLoading(true)
+        const response = await axios.get('/api/donations/me')
+        setDonationSummary(response.data.summary || null)
+      } catch (error) {
+        // For now, just log error; dashboard still works without summary
+        console.error('Failed to load donation summary:', error)
+      } finally {
+        setDonationLoading(false)
+      }
+    }
+
+    if (user?.role === 'donor') {
+      fetchDonationSummary()
+    }
+  }, [user])
 
   const getRoleDisplayName = (role) => {
     const roleMap = {
@@ -43,6 +65,26 @@ const Dashboard = () => {
             <h2>Welcome, {user?.name}!</h2>
             <p className="dashboard-subtitle">{getWelcomeMessage(user?.role)}</p>
           </div>
+
+          {user?.role === 'donor' && donationSummary && (
+            <div className="dashboard-card">
+              <h3>Your Donation Summary</h3>
+              <div className="profile-info">
+                <div className="info-row">
+                  <span className="info-label">Total Donated Amount:</span>
+                  <span className="info-value">
+                    NPR {donationSummary.totalMonetary.toLocaleString()}
+                  </span>
+                </div>
+                <div className="info-row">
+                  <span className="info-label">Total Items Donated:</span>
+                  <span className="info-value">
+                    {donationSummary.totalItems} items
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
 
           <div className="dashboard-card">
             <h3>Your Profile</h3>
