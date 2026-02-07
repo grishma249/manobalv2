@@ -409,7 +409,7 @@ router.get(
   '/donations',
   [
     query('type').optional().isIn(['monetary', 'physical']),
-    query('status').optional().isIn(['pending', 'completed', 'verified', 'cancelled']),
+    query('status').optional().isIn(['pending', 'completed', 'cancelled']),
     query('page').optional().isInt({ min: 1 }),
     query('limit').optional().isInt({ min: 1, max: 100 }),
   ],
@@ -452,15 +452,15 @@ router.get(
   }
 );
 
-// @route   PATCH /api/admin/donations/:id/verify
-// @desc    Verify a donation
+// @route   PATCH /api/admin/donations/:id/status
+// @desc    Update donation status (allows editing any status)
 // @access  Private (Admin only)
 router.patch(
-  '/donations/:id/verify',
+  '/donations/:id/status',
   [
     body('status')
-      .isIn(['verified', 'completed'])
-      .withMessage('Status must be verified or completed'),
+      .isIn(['pending', 'completed', 'cancelled'])
+      .withMessage('Status must be pending, completed, or cancelled'),
   ],
   async (req, res) => {
     try {
@@ -489,11 +489,11 @@ router.patch(
       }
 
       res.json({
-        message: 'Donation verified successfully',
+        message: 'Donation status updated successfully',
         donation,
       });
     } catch (error) {
-      console.error('Verify donation error:', error);
+      console.error('Update donation status error:', error);
       res.status(500).json({ message: 'Server error', error: error.message });
     }
   }
@@ -604,6 +604,57 @@ router.get('/volunteers/:id/participation', async (req, res) => {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 });
+
+// @route   PATCH /api/admin/participations/:id/attendance
+// @desc    Mark volunteer attendance (attended/absent)
+// @access  Private (Admin only)
+router.patch(
+  '/participations/:id/attendance',
+  [
+    body('status')
+      .isIn(['attended', 'absent', 'confirmed'])
+      .withMessage('Status must be attended, absent, or confirmed'),
+    body('notes').optional().trim(),
+  ],
+  async (req, res) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+      }
+
+      const { id } = req.params;
+      const { status, notes } = req.body;
+
+      const participation = await VolunteerParticipation.findById(id)
+        .populate('event', 'title date')
+        .populate('volunteer', 'name email');
+
+      if (!participation) {
+        return res.status(404).json({ message: 'Participation record not found' });
+      }
+
+      participation.status = status;
+      if (notes) participation.notes = notes;
+
+      if (status === 'attended') {
+        participation.attendedAt = new Date();
+      } else if (status === 'confirmed') {
+        participation.confirmedAt = new Date();
+      }
+
+      await participation.save();
+
+      res.json({
+        message: `Attendance marked as ${status}`,
+        participation,
+      });
+    } catch (error) {
+      console.error('Mark attendance error:', error);
+      res.status(500).json({ message: 'Server error', error: error.message });
+    }
+  }
+);
 
 module.exports = router;
 

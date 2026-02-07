@@ -129,12 +129,12 @@ const Donations = () => {
     }
   }
 
-  const handleVerify = async (donationId, status) => {
+  const handleStatusChange = async (donationId, status) => {
     try {
-      await axios.patch(`/api/admin/donations/${donationId}/verify`, { status })
+      await axios.patch(`/api/admin/donations/${donationId}/status`, { status })
       fetchAdminDonations()
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to verify donation')
+      alert(err.response?.data?.message || 'Failed to update donation status')
     }
   }
 
@@ -312,7 +312,6 @@ const Donations = () => {
                     <option value="">All Status</option>
                   <option value="pending">Pending</option>
                   <option value="completed">Completed</option>
-                  <option value="verified">Verified</option>
                   <option value="cancelled">Cancelled</option>
                   </select>
                 </div>
@@ -364,22 +363,17 @@ const Donations = () => {
                               </td>
                               {isAdmin && (
                                 <td>
-                                  {donation.status === 'pending' && (
-                                    <>
-                                      <button
-                                        onClick={() => handleVerify(donation._id, 'verified')}
-                                        className="btn btn-success btn-sm"
-                                      >
-                                        Verify
-                                      </button>
-                                      <button
-                                        onClick={() => handleVerify(donation._id, 'completed')}
-                                        className="btn btn-info btn-sm"
-                                      >
-                                        Mark Completed
-                                      </button>
-                                    </>
-                                  )}
+                                  <div className="status-actions">
+                                    <select
+                                      value={donation.status}
+                                      onChange={(e) => handleStatusChange(donation._id, e.target.value)}
+                                      className="status-select"
+                                    >
+                                      <option value="pending">Pending</option>
+                                      <option value="completed">Completed</option>
+                                      <option value="cancelled">Cancelled</option>
+                                    </select>
+                                  </div>
                                 </td>
                               )}
                             </tr>

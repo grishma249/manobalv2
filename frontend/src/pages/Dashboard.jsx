@@ -10,6 +10,10 @@ const Dashboard = () => {
   const navigate = useNavigate()
   const [donationSummary, setDonationSummary] = useState(null)
   const [donationLoading, setDonationLoading] = useState(false)
+  const [volunteerSummary, setVolunteerSummary] = useState(null)
+  const [volunteerLoading, setVolunteerLoading] = useState(false)
+  const [schoolSummary, setSchoolSummary] = useState(null)
+  const [schoolLoading, setSchoolLoading] = useState(false)
 
   useEffect(() => {
     // Redirect admin users to admin dashboard
@@ -25,15 +29,42 @@ const Dashboard = () => {
         const response = await axios.get('/api/donations/me')
         setDonationSummary(response.data.summary || null)
       } catch (error) {
-        // For now, just log error; dashboard still works without summary
         console.error('Failed to load donation summary:', error)
       } finally {
         setDonationLoading(false)
       }
     }
 
+    const fetchVolunteerSummary = async () => {
+      try {
+        setVolunteerLoading(true)
+        const response = await axios.get('/api/volunteers/participations?limit=1')
+        setVolunteerSummary(response.data.summary || null)
+      } catch (error) {
+        console.error('Failed to load volunteer summary:', error)
+      } finally {
+        setVolunteerLoading(false)
+      }
+    }
+
+    const fetchSchoolSummary = async () => {
+      try {
+        setSchoolLoading(true)
+        const response = await axios.get('/api/schools/events?limit=1')
+        setSchoolSummary(response.data.summary || null)
+      } catch (error) {
+        console.error('Failed to load school summary:', error)
+      } finally {
+        setSchoolLoading(false)
+      }
+    }
+
     if (user?.role === 'donor') {
       fetchDonationSummary()
+    } else if (user?.role === 'volunteer') {
+      fetchVolunteerSummary()
+    } else if (user?.role === 'school') {
+      fetchSchoolSummary()
     }
   }, [user])
 
@@ -86,6 +117,54 @@ const Dashboard = () => {
             </div>
           )}
 
+          {user?.role === 'volunteer' && volunteerSummary && (
+            <div className="dashboard-card">
+              <h3>Your Participation Summary</h3>
+              <div className="profile-info">
+                <div className="info-row">
+                  <span className="info-label">Total Events:</span>
+                  <span className="info-value">{volunteerSummary.total || 0}</span>
+                </div>
+                <div className="info-row">
+                  <span className="info-label">Attended:</span>
+                  <span className="info-value">{volunteerSummary.attended || 0}</span>
+                </div>
+                <div className="info-row">
+                  <span className="info-label">Confirmed:</span>
+                  <span className="info-value">{volunteerSummary.confirmed || 0}</span>
+                </div>
+                <div className="info-row">
+                  <span className="info-label">Registered:</span>
+                  <span className="info-value">{volunteerSummary.registered || 0}</span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {user?.role === 'school' && schoolSummary && (
+            <div className="dashboard-card">
+              <h3>Your Event Requests Summary</h3>
+              <div className="profile-info">
+                <div className="info-row">
+                  <span className="info-label">Total Requests:</span>
+                  <span className="info-value">{schoolSummary.total || 0}</span>
+                </div>
+                <div className="info-row">
+                  <span className="info-label">Pending:</span>
+                  <span className="info-value">{schoolSummary.pending || 0}</span>
+                </div>
+                <div className="info-row">
+                  <span className="info-label">Approved:</span>
+                  <span className="info-value">{schoolSummary.approved || 0}</span>
+                </div>
+                <div className="info-row">
+                  <span className="info-label">Completed:</span>
+                  <span className="info-value">{schoolSummary.completed || 0}</span>
+                </div>
+              </div>
+            </div>
+          )}
+
           <div className="dashboard-card">
             <h3>Your Profile</h3>
             <div className="profile-info">
@@ -111,37 +190,36 @@ const Dashboard = () => {
           </div>
 
           <div className="dashboard-card">
-            <h3>Coming Soon</h3>
-            <p>Role-specific features will be available here based on your account type.</p>
-            <ul className="coming-soon-list">
-              {user?.role === 'admin' && (
+            <h3>Quick Actions</h3>
+            <div className="quick-actions">
+              {user?.role === 'volunteer' && (
                 <>
-                  <li>Event Management</li>
-                  <li>Volunteer Management</li>
-                  <li>Donation Oversight</li>
-                  <li>User Management</li>
+                  <a href="/events" className="action-link">
+                    📅 Browse Available Events
+                  </a>
+                  <a href="/my-events" className="action-link">
+                    🗂️ View My Registered Events
+                  </a>
                 </>
               )}
               {user?.role === 'school' && (
                 <>
-                  <li>Event Request Submission</li>
-                  <li>Event Status Tracking</li>
-                </>
-              )}
-              {user?.role === 'volunteer' && (
-                <>
-                  <li>Event Browsing</li>
-                  <li>Event Participation</li>
-                  <li>Participation History</li>
+                  <a href="/school/request-event" className="action-link">
+                    📝 Request a New Event
+                  </a>
+                  <a href="/events" className="action-link">
+                    📅 View My Event Requests
+                  </a>
                 </>
               )}
               {user?.role === 'donor' && (
                 <>
-                  <li>Donation Submission</li>
-                  <li>Donation History</li>
+                  <a href="/donations" className="action-link">
+                    💰 Make a Donation
+                  </a>
                 </>
               )}
-            </ul>
+            </div>
           </div>
         </div>
       </AppShell>

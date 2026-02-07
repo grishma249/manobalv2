@@ -46,7 +46,7 @@ const donationSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ['pending', 'completed', 'verified', 'cancelled'],
+      enum: ['pending', 'completed', 'cancelled'],
       default: 'pending',
     },
     transactionRef: {
