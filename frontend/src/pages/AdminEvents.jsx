@@ -13,6 +13,18 @@ const AdminEvents = () => {
   const [selectedEvent, setSelectedEvent] = useState(null)
   const [showAssignModal, setShowAssignModal] = useState(false)
   const [volunteers, setVolunteers] = useState([])
+  const [createFormData, setCreateFormData] = useState({
+    title: '',
+    description: '',
+    eventType: 'workshop',
+    date: '',
+    location: '',
+    targetAudience: '',
+    numberOfStudents: '',
+    notes: '',
+  })
+  const [submitting, setSubmitting] = useState(false)
+  const [createError, setCreateError] = useState('')
 
   useEffect(() => {
     fetchEvents()
@@ -66,6 +78,43 @@ const AdminEvents = () => {
       fetchEvents()
     } catch (err) {
       alert(err.response?.data?.message || 'Failed to assign volunteers')
+    }
+  }
+
+  const handleCreateEvent = async (e) => {
+    e.preventDefault()
+    try {
+      setSubmitting(true)
+      setCreateError('')
+
+      const eventData = {
+        ...createFormData,
+        numberOfStudents: createFormData.numberOfStudents
+          ? parseInt(createFormData.numberOfStudents)
+          : undefined,
+      }
+
+      await axios.post('/api/admin/events', eventData)
+      setShowCreateModal(false)
+      setCreateFormData({
+        title: '',
+        description: '',
+        eventType: 'workshop',
+        date: '',
+        location: '',
+        targetAudience: '',
+        numberOfStudents: '',
+        notes: '',
+      })
+      fetchEvents()
+      alert('Event created successfully! It is now visible to volunteers.')
+    } catch (err) {
+      const errorMsg = err.response?.data?.errors
+        ? err.response.data.errors.map((e) => e.msg).join(', ')
+        : err.response?.data?.message || 'Failed to create event'
+      setCreateError(errorMsg)
+    } finally {
+      setSubmitting(false)
     }
   }
 
@@ -224,6 +273,154 @@ const AdminEvents = () => {
               </div>
             )}
           </>
+        )}
+
+        {/* Create Event Modal */}
+        {showCreateModal && (
+          <div className="modal-overlay" onClick={() => setShowCreateModal(false)}>
+            <div className="modal-content modal-large" onClick={(e) => e.stopPropagation()}>
+              <h2>Create New Event</h2>
+              <p className="modal-subtitle">
+                Events created here will be automatically approved and visible to volunteers.
+              </p>
+              {createError && <div className="alert alert-error">{createError}</div>}
+              <form onSubmit={handleCreateEvent}>
+                <div className="form-group">
+                  <label htmlFor="title">Event Title *</label>
+                  <input
+                    type="text"
+                    id="title"
+                    value={createFormData.title}
+                    onChange={(e) =>
+                      setCreateFormData({ ...createFormData, title: e.target.value })
+                    }
+                    placeholder="e.g., Mental Health Awareness Workshop"
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label htmlFor="description">Description *</label>
+                  <textarea
+                    id="description"
+                    rows="4"
+                    value={createFormData.description}
+                    onChange={(e) =>
+                      setCreateFormData({ ...createFormData, description: e.target.value })
+                    }
+                    placeholder="Describe the event, its objectives, and what participants will learn."
+                    required
+                  />
+                </div>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label htmlFor="eventType">Event Type *</label>
+                    <select
+                      id="eventType"
+                      value={createFormData.eventType}
+                      onChange={(e) =>
+                        setCreateFormData({ ...createFormData, eventType: e.target.value })
+                      }
+                      required
+                    >
+                      <option value="workshop">Workshop</option>
+                      <option value="awareness">Awareness Program</option>
+                      <option value="training">Training</option>
+                      <option value="other">Other</option>
+                    </select>
+                  </div>
+                  <div className="form-group">
+                    <label htmlFor="date">Event Date *</label>
+                    <input
+                      type="datetime-local"
+                      id="date"
+                      value={createFormData.date}
+                      onChange={(e) =>
+                        setCreateFormData({ ...createFormData, date: e.target.value })
+                      }
+                      required
+                    />
+                  </div>
+                </div>
+                <div className="form-group">
+                  <label htmlFor="location">Location *</label>
+                  <input
+                    type="text"
+                    id="location"
+                    value={createFormData.location}
+                    onChange={(e) =>
+                      setCreateFormData({ ...createFormData, location: e.target.value })
+                    }
+                    placeholder="Event venue or address"
+                    required
+                  />
+                </div>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label htmlFor="targetAudience">Target Audience</label>
+                    <input
+                      type="text"
+                      id="targetAudience"
+                      value={createFormData.targetAudience}
+                      onChange={(e) =>
+                        setCreateFormData({ ...createFormData, targetAudience: e.target.value })
+                      }
+                      placeholder="e.g., Grade 9-10 students"
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label htmlFor="numberOfStudents">Number of Students</label>
+                    <input
+                      type="number"
+                      id="numberOfStudents"
+                      value={createFormData.numberOfStudents}
+                      onChange={(e) =>
+                        setCreateFormData({ ...createFormData, numberOfStudents: e.target.value })
+                      }
+                      placeholder="e.g., 80"
+                      min="0"
+                    />
+                  </div>
+                </div>
+                <div className="form-group">
+                  <label htmlFor="notes">Additional Notes</label>
+                  <textarea
+                    id="notes"
+                    rows="3"
+                    value={createFormData.notes}
+                    onChange={(e) =>
+                      setCreateFormData({ ...createFormData, notes: e.target.value })
+                    }
+                    placeholder="Any additional information or special requirements"
+                  />
+                </div>
+                <div className="modal-actions">
+                  <button type="submit" className="btn btn-primary" disabled={submitting}>
+                    {submitting ? 'Creating...' : 'Create Event'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowCreateModal(false)
+                      setCreateError('')
+                      setCreateFormData({
+                        title: '',
+                        description: '',
+                        eventType: 'workshop',
+                        date: '',
+                        location: '',
+                        targetAudience: '',
+                        numberOfStudents: '',
+                        notes: '',
+                      })
+                    }}
+                    className="btn btn-outline"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
         )}
 
         {/* Assign Volunteers Modal */}
