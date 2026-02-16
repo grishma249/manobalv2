@@ -4,8 +4,8 @@
 }
 
 .page-header {
-  background: linear-gradient(135deg, #4ECDC4 0%, #2d6e6a 100%);
-  color: white;
+  background: var(--gradient-primary);
+  color: var(--text-light);
   padding: 100px 0 60px;
   text-align: center;
 }
@@ -55,7 +55,7 @@
 }
 
 .coming-soon-text {
-  color: #4ECDC4;
+  color: var(--accent-color);
   font-weight: 600;
   margin-top: 24px;
 }
@@ -104,7 +104,7 @@
 .summary-content h3 {
   font-size: 28px;
   font-weight: 700;
-  color: #4ECDC4;
+  color: var(--accent-color);
   margin-bottom: 4px;
 }
 
@@ -148,7 +148,7 @@
 
 .filter-group select:focus {
   outline: none;
-  border-color: #4ECDC4;
+  border-color: var(--accent-color);
 }
 
 .participations-list {
@@ -259,5 +259,3 @@
     padding: 40px 24px;
   }
 }
-
-

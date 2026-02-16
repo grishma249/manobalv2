@@ -4,8 +4,8 @@
 }
 
 .about-hero {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  background: var(--gradient-primary);
+  color: var(--text-light);
   padding: 120px 0 80px;
   text-align: center;
 }
@@ -94,4 +94,3 @@
     grid-template-columns: 1fr;
   }
 }
-

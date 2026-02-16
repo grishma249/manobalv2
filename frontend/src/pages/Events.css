@@ -4,8 +4,8 @@
 }
 
 .page-header {
-  background: linear-gradient(135deg, #4CAF50 0%, #2d5016 100%);
-  color: white;
+  background: var(--gradient-primary);
+  color: var(--text-light);
   padding: 100px 0 60px;
   text-align: center;
 }
@@ -55,7 +55,7 @@
 }
 
 .coming-soon-text {
-  color: #4CAF50;
+  color: var(--primary-color);
   font-weight: 600;
   margin-top: 24px;
 }
@@ -185,4 +185,3 @@
   border-radius: 16px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
 }
-

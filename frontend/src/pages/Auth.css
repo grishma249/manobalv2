@@ -34,7 +34,7 @@
 .auth-header h1 {
   font-size: 26px;
   font-weight: 700;
-  color: #2e7d32;
+  color: var(--primary-dark);
   margin-bottom: 8px;
 }
 
@@ -78,8 +78,8 @@
 .form-group select:focus {
   outline: none;
   background: #ffffff;
-  border-color: #4CAF50;
-  box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.15);
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.15);
 }
 
 /* Error state */
@@ -118,13 +118,13 @@
 }
 
 .btn-primary.btn-full {
-  background: linear-gradient(135deg, #4CAF50, #2e7d32);
-  color: white;
+  background: var(--gradient-primary);
+  color: var(--text-light);
 }
 
 .btn-primary.btn-full:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 6px 18px rgba(76, 175, 80, 0.25);
+  box-shadow: 0 6px 18px rgba(25, 118, 210, 0.25);
 }
 
 .btn:disabled {
@@ -149,7 +149,7 @@
 
 .auth-footer a {
   font-weight: 600;
-  color: #2e7d32;
+  color: var(--primary-dark);
   text-decoration: none;
 }
 

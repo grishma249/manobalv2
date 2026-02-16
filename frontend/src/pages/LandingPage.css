@@ -29,8 +29,8 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #4CAF50 100%);
-  opacity: 0.05;
+  background: linear-gradient(135deg, var(--primary-light) 0%, var(--surface-color) 100%);
+  opacity: 0.5;
   z-index: 0;
 }
 
@@ -41,7 +41,7 @@
   left: -50%;
   width: 200%;
   height: 200%;
-  background: radial-gradient(circle, rgba(76, 175, 80, 0.1) 0%, transparent 70%);
+  background: radial-gradient(circle, var(--primary-light) 0%, transparent 70%);
   animation: rotate 20s linear infinite;
 }
 
@@ -49,6 +49,7 @@
   from {
     transform: rotate(0deg);
   }
+
   to {
     transform: rotate(360deg);
   }
@@ -64,13 +65,13 @@
 .hero-badge {
   display: inline-block;
   padding: 8px 20px;
-  background: rgba(76, 175, 80, 0.1);
-  border: 1px solid rgba(76, 175, 80, 0.3);
+  background: var(--primary-light);
+  border: 1px solid var(--primary-color);
   border-radius: 50px;
   margin-bottom: 24px;
   font-size: 14px;
   font-weight: 600;
-  color: #4CAF50;
+  color: var(--primary-color);
   backdrop-filter: blur(10px);
 }
 
@@ -83,7 +84,7 @@
 }
 
 .gradient-text {
-  background: linear-gradient(135deg, #4CAF50 0%, #2d5016 100%);
+  background: var(--gradient-primary);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -129,9 +130,12 @@
 }
 
 @keyframes bounce {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: translateX(-50%) translateY(0);
   }
+
   50% {
     transform: translateX(-50%) translateY(-10px);
   }
@@ -193,7 +197,7 @@
   left: 0;
   right: 0;
   height: 4px;
-  background: linear-gradient(90deg, #4CAF50, #2d5016);
+  background: var(--gradient-primary);
   transform: scaleX(0);
   transition: transform 0.3s ease;
 }
@@ -318,8 +322,8 @@
   justify-content: center;
   width: 24px;
   height: 24px;
-  background: linear-gradient(135deg, #4CAF50, #2d5016);
-  color: white;
+  background: var(--gradient-primary);
+  color: var(--text-light);
   border-radius: 50%;
   font-size: 12px;
   font-weight: bold;
@@ -330,14 +334,14 @@
   display: inline-block;
   margin-top: 24px;
   padding: 12px 24px;
-  background: linear-gradient(135deg, #4CAF50, #2d5016);
-  color: white;
+  background: var(--gradient-primary);
+  color: var(--text-light);
   text-decoration: none;
   border-radius: 50px;
   font-weight: 600;
   font-size: 14px;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+  box-shadow: 0 4px 15px rgba(25, 118, 210, 0.3);
 }
 
 .role-cta:hover {
@@ -348,8 +352,8 @@
 /* Stats Section */
 .stats-section {
   padding: 80px 0;
-  background: linear-gradient(135deg, #4CAF50 0%, #2d5016 100%);
-  color: white;
+  background: var(--gradient-primary);
+  color: var(--text-light);
 }
 
 .stats-grid {
@@ -382,8 +386,8 @@
 /* CTA Section */
 .cta-section {
   padding: 100px 0;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  background: var(--gradient-accent);
+  color: var(--text-light);
   text-align: center;
 }
 
@@ -422,13 +426,13 @@
 }
 
 .footer-section h3 {
-  color: #4CAF50;
+  color: var(--primary-color);
   font-size: 24px;
   margin-bottom: 16px;
 }
 
 .footer-section h4 {
-  color: white;
+  color: var(--text-light);
   font-size: 18px;
   margin-bottom: 16px;
 }
@@ -454,7 +458,7 @@
 }
 
 .footer-section ul li a:hover {
-  color: #4CAF50;
+  color: var(--primary-color);
 }
 
 .footer-bottom {

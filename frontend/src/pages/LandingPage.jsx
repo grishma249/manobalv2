@@ -88,7 +88,7 @@ const LandingPage = () => {
           )}
           {isAuthenticated && (
             <div className="hero-cta">
-              <Link to="/dashboard" className="btn btn-primary btn-hero">
+              <Link to="/dashboard" className="btn btn-secondary btn-hero">
                 Go to Dashboard
               </Link>
             </div>

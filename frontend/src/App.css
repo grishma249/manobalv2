@@ -23,36 +23,36 @@
 }
 
 .btn-primary {
-  background-color: #4CAF50;
-  color: white;
+  background-color: var(--primary-color);
+  color: var(--text-light);
 }
 
 .btn-primary:hover {
-  background-color: #45a049;
+  background-color: var(--primary-dark);
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
 .btn-secondary {
-  background-color: #2196F3;
-  color: white;
+  background-color: var(--accent-color);
+  color: var(--text-light);
 }
 
 .btn-secondary:hover {
-  background-color: #0b7dda;
+  background-color: var(--accent-hover);
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
 .btn-outline {
   background-color: transparent;
-  border: 2px solid #4CAF50;
-  color: #4CAF50;
+  border: 2px solid var(--primary-color);
+  color: var(--primary-color);
 }
 
 .btn-outline:hover {
-  background-color: #4CAF50;
-  color: white;
+  background-color: var(--primary-color);
+  color: var(--text-light);
 }
 
 .btn:disabled {
@@ -79,14 +79,14 @@
   display: block;
   margin-bottom: 8px;
   font-weight: 600;
-  color: #333;
+  color: var(--text-primary);
 }
 
 .form-group input,
 .form-group select {
   width: 100%;
   padding: 12px;
-  border: 2px solid #e0e0e0;
+  border: 2px solid var(--border-color);
   border-radius: 6px;
   font-size: 16px;
   transition: border-color 0.3s ease;
@@ -95,7 +95,7 @@
 .form-group input:focus,
 .form-group select:focus {
   outline: none;
-  border-color: #4CAF50;
+  border-color: var(--primary-color);
 }
 
 .form-group .error {
@@ -124,7 +124,7 @@
 .alert-success {
   background-color: #e8f5e9;
   color: #2e7d32;
-  border: 1px solid #4caf50;
+  border: 1px solid var(--primary-color);
 }
 
 /* Card Styles */
@@ -139,7 +139,7 @@
 /* Loading Spinner */
 .spinner {
   border: 3px solid #f3f3f3;
-  border-top: 3px solid #4CAF50;
+  border-top: 3px solid var(--primary-color);
   border-radius: 50%;
   width: 30px;
   height: 30px;
@@ -148,7 +148,11 @@
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
+  0% {
+    transform: rotate(0deg);
+  }
 
+  100% {
+    transform: rotate(360deg);
+  }
+}

@@ -4,8 +4,8 @@
 }
 
 .page-header {
-  background: linear-gradient(135deg, #FF6B6B 0%, #c92a2a 100%);
-  color: white;
+  background: var(--gradient-primary);
+  color: var(--text-light);
   padding: 100px 0 60px;
   text-align: center;
 }
@@ -117,7 +117,7 @@
 
 .filter-group select:focus {
   outline: none;
-  border-color: #4CAF50;
+  border-color: var(--primary-color);
 }
 
 .type-badge {
@@ -182,11 +182,11 @@
 
 .status-select:focus {
   outline: none;
-  border-color: #4CAF50;
+  border-color: var(--primary-color);
 }
 
 .status-select:hover {
-  border-color: #4CAF50;
+  border-color: var(--primary-color);
 }
 
 .pagination {
@@ -216,4 +216,3 @@
     flex-direction: column;
   }
 }
-

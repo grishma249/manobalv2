@@ -4,8 +4,8 @@
 }
 
 .page-header {
-  background: linear-gradient(135deg, #4ECDC4 0%, #2d6e6a 100%);
-  color: white;
+  background: var(--gradient-primary);
+  color: var(--text-light);
   padding: 100px 0 60px;
   text-align: center;
 }
@@ -55,7 +55,7 @@
 }
 
 .coming-soon-text {
-  color: #4ECDC4;
+  color: var(--accent-color);
   font-weight: 600;
   margin-top: 24px;
 }
@@ -110,8 +110,8 @@
   width: 60px;
   height: 60px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #4ECDC4, #2d6e6a);
-  color: white;
+  background: var(--gradient-accent-light);
+  color: var(--text-light);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -159,7 +159,7 @@
 .stat-value {
   font-size: 24px;
   font-weight: 700;
-  color: #4ECDC4;
+  color: var(--accent-color);
 }
 
 .status-badge {
@@ -317,4 +317,3 @@
     grid-template-columns: repeat(2, 1fr);
   }
 }
-

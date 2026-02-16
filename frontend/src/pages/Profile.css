@@ -4,7 +4,7 @@
 }
 
 .page-header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--gradient-primary);
   color: white;
   padding: 100px 0 60px;
   text-align: center;
@@ -43,14 +43,14 @@
   width: 120px;
   height: 120px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #4CAF50 0%, #2d5016 100%);
-  color: white;
+  background: var(--gradient-primary);
+  color: var(--text-light);
   display: inline-flex;
   align-items: center;
   justify-content: center;
   font-size: 48px;
   font-weight: 700;
-  box-shadow: 0 8px 20px rgba(76, 175, 80, 0.3);
+  box-shadow: 0 8px 20px rgba(25, 118, 210, 0.3);
 }
 
 .profile-info {
@@ -98,8 +98,8 @@
 .role-badge {
   display: inline-block;
   padding: 6px 16px;
-  background: linear-gradient(135deg, #4CAF50, #2d5016);
-  color: white;
+  background: var(--gradient-primary);
+  color: var(--text-light);
   border-radius: 20px;
   font-size: 14px;
   font-weight: 600;
@@ -124,4 +124,3 @@
     font-size: 40px;
   }
 }
-

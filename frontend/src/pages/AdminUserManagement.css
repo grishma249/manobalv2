@@ -52,7 +52,7 @@
 
 .filter-group select:focus {
   outline: none;
-  border-color: #4CAF50;
+  border-color: var(--primary-color);
 }
 
 .users-table-container {
@@ -203,4 +203,3 @@
     min-width: 800px;
   }
 }
-

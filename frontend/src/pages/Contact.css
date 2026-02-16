@@ -4,8 +4,8 @@
 }
 
 .contact-hero {
-  background: linear-gradient(135deg, #4CAF50 0%, #2d5016 100%);
-  color: white;
+  background: var(--gradient-primary);
+  color: var(--text-light);
   padding: 120px 0 80px;
   text-align: center;
 }
@@ -88,7 +88,7 @@
 
 .contact-form textarea:focus {
   outline: none;
-  border-color: #4CAF50;
+  border-color: var(--primary-color);
 }
 
 @media (max-width: 968px) {
@@ -111,4 +111,3 @@
     padding: 24px;
   }
 }
-

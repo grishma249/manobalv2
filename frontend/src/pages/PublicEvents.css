@@ -4,8 +4,8 @@
 }
 
 .public-events-hero {
-  background: linear-gradient(135deg, #4CAF50 0%, #2d5016 100%);
-  color: white;
+  background: var(--gradient-primary);
+  color: var(--text-light);
   padding: 110px 0 70px;
   text-align: center;
 }
@@ -61,7 +61,7 @@
 
 .event-organizer {
   font-size: 14px;
-  color: #4CAF50;
+  color: var(--primary-color);
   font-weight: 600;
   margin-bottom: 10px;
 }
@@ -88,5 +88,3 @@
     padding: 50px 0 50px;
   }
 }
-
-

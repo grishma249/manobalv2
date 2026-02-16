@@ -38,7 +38,7 @@
 
 .dashboard-card h3 {
   font-size: 24px;
-  color: #4CAF50;
+  color: var(--primary-color);
   margin-bottom: 20px;
 }
 
@@ -85,7 +85,7 @@
   content: '✓';
   position: absolute;
   left: 0;
-  color: #4CAF50;
+  color: var(--primary-color);
   font-weight: bold;
 }
 
@@ -99,7 +99,7 @@
 .action-link {
   display: block;
   padding: 16px 20px;
-  background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+  background: var(--gradient-primary);
   color: white;
   text-decoration: none;
   border-radius: 12px;
@@ -111,7 +111,7 @@
 
 .action-link:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(76, 175, 80, 0.3);
+  box-shadow: 0 6px 20px rgba(25, 118, 210, 0.3);
 }
 
 @media (max-width: 768px) {
@@ -138,4 +138,3 @@
     min-width: auto;
   }
 }
-
