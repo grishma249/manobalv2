@@ -36,7 +36,11 @@ const Navigation = () => {
     <nav className="main-nav">
       <div className="nav-container">
         <Link to="/" className="nav-logo">
-          <span className="logo-icon">🌱</span>
+          <img
+            src="/Logo.jpg"
+            alt="Manobal Nepal Logo"
+            className="logo-image"
+          />
           <span className="logo-text">Manobal Nepal</span>
         </Link>
 
