@@ -43,7 +43,6 @@ const MyEvents = () => {
       registered: '#17a2b8',
       confirmed: '#17a2b8',
       attended: '#28a745',
-      absent: '#dc3545',
       cancelled: '#6c757d',
     }
     return colors[status] || '#6c757d'
@@ -84,16 +83,9 @@ const MyEvents = () => {
             </div>
           </div>
           <div className="summary-card">
-            <div className="summary-icon">✓</div>
-            <div className="summary-content">
-              <h3>{summary.confirmed || 0}</h3>
-              <p>Confirmed</p>
-            </div>
-          </div>
-          <div className="summary-card">
             <div className="summary-icon">📝</div>
             <div className="summary-content">
-              <h3>{summary.registered || 0}</h3>
+              <h3>{(summary.registered || 0) + (summary.confirmed || 0)}</h3>
               <p>Registered</p>
             </div>
           </div>
@@ -117,9 +109,7 @@ const MyEvents = () => {
               <option value="">All Status</option>
               <option value="pending">Pending</option>
               <option value="registered">Registered</option>
-              <option value="confirmed">Confirmed</option>
               <option value="attended">Attended</option>
-              <option value="absent">Absent</option>
               <option value="cancelled">Cancelled</option>
             </select>
           </div>
@@ -143,7 +133,7 @@ const MyEvents = () => {
                       className="status-badge"
                       style={{ backgroundColor: getStatusColor(participation.status) }}
                     >
-                      {participation.status}
+                      {participation.status === 'confirmed' ? 'Registered' : participation.status}
                     </span>
                   </div>
                   <div className="participation-details">

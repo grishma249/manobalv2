@@ -239,7 +239,10 @@ const Dashboard = () => {
                     <div className="stat-card">
                       <div className="stat-icon">✓</div>
                       <div className="stat-content">
-                        <span className="stat-value">{volunteerData.summary?.registered || 0}</span>
+                        <span className="stat-value">
+                          {(volunteerData.summary?.registered || 0) +
+                            (volunteerData.summary?.confirmed || 0)}
+                        </span>
                         <span className="stat-label">Registered</span>
                       </div>
                     </div>
@@ -267,7 +270,7 @@ const Dashboard = () => {
                                 className="recent-badge"
                                 style={{ backgroundColor: getStatusColor(p.status) }}
                               >
-                                {p.status}
+                                {p.status === 'confirmed' ? 'Registered' : p.status}
                               </span>
                             </div>
                             <span className="recent-meta">

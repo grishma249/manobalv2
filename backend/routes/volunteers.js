@@ -157,7 +157,7 @@ router.get(
   authenticate,
   authorize('volunteer'),
   [
-    query('status').optional().isIn(['pending', 'registered', 'confirmed', 'attended', 'absent', 'cancelled']),
+    query('status').optional().isIn(['pending', 'registered', 'attended', 'cancelled']),
     query('page').optional().isInt({ min: 1 }),
     query('limit').optional().isInt({ min: 1, max: 100 }),
   ],
@@ -173,7 +173,13 @@ router.get(
       const volunteerId = req.user._id;
 
       const filter = { volunteer: volunteerId };
-      if (status) filter.status = status;
+      if (status) {
+        // Treat 'registered' as including 'confirmed' (same meaning to volunteer)
+        filter.status = status === 'registered' ? { $in: ['registered', 'confirmed'] } : status;
+      } else {
+        // Exclude 'absent' from volunteer view (simplified UI)
+        filter.status = { $ne: 'absent' };
+      }
 
       const participations = await VolunteerParticipation.find(filter)
         .populate('event', 'title date location eventType status')
