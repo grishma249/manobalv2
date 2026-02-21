@@ -61,8 +61,8 @@ const Events = () => {
   const handleRegister = async (eventId) => {
     try {
       setRegistering(eventId)
-      await axios.post(`/api/volunteers/events/${eventId}/register`)
-      alert('Successfully registered for this event!')
+      const res = await axios.post(`/api/volunteers/events/${eventId}/register`)
+      alert(res.data?.message || 'Registration request submitted. Pending admin approval.')
       fetchVolunteerEvents() // Refresh to update registration status
     } catch (err) {
       alert(err.response?.data?.message || 'Failed to register for event')
@@ -156,11 +156,13 @@ const Events = () => {
                           </div>
                         )}
                       </div>
-                      {isVolunteer && (
+                        {isVolunteer && (
                         <div className="event-actions">
                           {event.isRegistered ? (
                             <div className="registered-badge">
-                              ✓ Registered ({event.registrationStatus})
+                              {event.registrationStatus === 'pending'
+                                ? '⏳ Pending (awaiting admin approval)'
+                                : `✓ ${event.registrationStatus.charAt(0).toUpperCase() + event.registrationStatus.slice(1)}`}
                             </div>
                           ) : (
                             <button

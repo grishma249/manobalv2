@@ -14,8 +14,8 @@ const volunteerParticipationSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ['registered', 'confirmed', 'attended', 'absent', 'cancelled'],
-      default: 'registered',
+      enum: ['pending', 'registered', 'confirmed', 'attended', 'absent', 'cancelled'],
+      default: 'pending',
     },
     registeredAt: {
       type: Date,

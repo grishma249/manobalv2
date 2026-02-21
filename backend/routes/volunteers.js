@@ -116,11 +116,11 @@ router.post(
           .json({ message: 'You are already registered for this event' });
       }
 
-      // Create participation record
+      // Create participation record - starts as pending until admin approves
       const participation = new VolunteerParticipation({
         volunteer: volunteerId,
         event: eventId,
-        status: 'registered',
+        status: 'pending',
         registeredAt: new Date(),
       });
 
@@ -133,7 +133,7 @@ router.post(
         .populate('event', 'title date location');
 
       res.status(201).json({
-        message: 'Successfully registered for event',
+        message: 'Registration request submitted. Pending admin approval.',
         participation: populatedParticipation,
       });
     } catch (error) {
@@ -157,7 +157,7 @@ router.get(
   authenticate,
   authorize('volunteer'),
   [
-    query('status').optional().isIn(['registered', 'confirmed', 'attended', 'absent', 'cancelled']),
+    query('status').optional().isIn(['pending', 'registered', 'confirmed', 'attended', 'absent', 'cancelled']),
     query('page').optional().isInt({ min: 1 }),
     query('limit').optional().isInt({ min: 1, max: 100 }),
   ],
@@ -190,6 +190,7 @@ router.get(
 
       const summary = {
         total: allParticipations.length,
+        pending: allParticipations.filter((p) => p.status === 'pending').length,
         registered: allParticipations.filter((p) => p.status === 'registered').length,
         confirmed: allParticipations.filter((p) => p.status === 'confirmed').length,
         attended: allParticipations.filter((p) => p.status === 'attended').length,

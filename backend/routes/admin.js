@@ -290,6 +290,43 @@ router.patch(
 
       await event.save();
 
+      // When marking event as completed, auto-update volunteer attendance
+      if (status === 'completed') {
+        // Mark all participations (registered/confirmed) as attended
+        await VolunteerParticipation.updateMany(
+          { event: id, status: { $in: ['registered', 'confirmed'] } },
+          { $set: { status: 'attended', attendedAt: new Date() } }
+        );
+
+        // For assigned volunteers without a participation record, create one as attended
+        const assignedIds = event.assignedVolunteers?.map((v) => v.toString()) || [];
+        if (assignedIds.length > 0) {
+          const existingParticipations = await VolunteerParticipation.find({
+            event: id,
+            volunteer: { $in: assignedIds },
+          }).select('volunteer');
+
+          const existingVolunteerIds = new Set(
+            existingParticipations.map((p) => p.volunteer.toString())
+          );
+          const missingVolunteerIds = assignedIds.filter(
+            (volId) => !existingVolunteerIds.has(volId)
+          );
+
+          if (missingVolunteerIds.length > 0) {
+            await VolunteerParticipation.insertMany(
+              missingVolunteerIds.map((volunteer) => ({
+                volunteer,
+                event: id,
+                status: 'attended',
+                registeredAt: new Date(),
+                attendedAt: new Date(),
+              }))
+            );
+          }
+        }
+      }
+
       const updatedEvent = await Event.findById(id)
         .populate('requestedBy', 'name email schoolName')
         .populate('approvedBy', 'name email');
@@ -350,6 +387,102 @@ router.post(
     }
   }
 );
+
+// @route   GET /api/admin/events/:id/participations
+// @desc    Get all volunteer participations (registrations) for an event
+// @access  Private (Admin only)
+router.get('/events/:id/participations', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const event = await Event.findById(id);
+    if (!event) {
+      return res.status(404).json({ message: 'Event not found' });
+    }
+
+    const participations = await VolunteerParticipation.find({ event: id })
+      .populate('volunteer', 'name email')
+      .sort({ registeredAt: -1 });
+
+    const pendingCount = participations.filter((p) => p.status === 'pending').length;
+
+    res.json({
+      participations,
+      pendingCount,
+    });
+  } catch (error) {
+    console.error('Get event participations error:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// @route   PATCH /api/admin/participations/:id/approve
+// @desc    Approve a pending volunteer registration
+// @access  Private (Admin only)
+router.patch('/participations/:id/approve', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const participation = await VolunteerParticipation.findById(id)
+      .populate('event', 'title date')
+      .populate('volunteer', 'name email');
+
+    if (!participation) {
+      return res.status(404).json({ message: 'Participation record not found' });
+    }
+
+    if (participation.status !== 'pending') {
+      return res.status(400).json({
+        message: `Cannot approve: registration is already ${participation.status}`,
+      });
+    }
+
+    participation.status = 'registered';
+    await participation.save();
+
+    res.json({
+      message: 'Volunteer registration approved',
+      participation,
+    });
+  } catch (error) {
+    console.error('Approve participation error:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// @route   PATCH /api/admin/participations/:id/reject
+// @desc    Reject a pending volunteer registration
+// @access  Private (Admin only)
+router.patch('/participations/:id/reject', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const participation = await VolunteerParticipation.findById(id)
+      .populate('event', 'title date')
+      .populate('volunteer', 'name email');
+
+    if (!participation) {
+      return res.status(404).json({ message: 'Participation record not found' });
+    }
+
+    if (participation.status !== 'pending') {
+      return res.status(400).json({
+        message: `Cannot reject: registration is already ${participation.status}`,
+      });
+    }
+
+    participation.status = 'cancelled';
+    await participation.save();
+
+    res.json({
+      message: 'Volunteer registration rejected',
+      participation,
+    });
+  } catch (error) {
+    console.error('Reject participation error:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
 
 // @route   PATCH /api/admin/events/:id/volunteers
 // @desc    Assign volunteers to an event
@@ -597,6 +730,7 @@ router.get('/volunteers/:id/participation', async (req, res) => {
         attended: participations.filter((p) => p.status === 'attended').length,
         confirmed: participations.filter((p) => p.status === 'confirmed').length,
         registered: participations.filter((p) => p.status === 'registered').length,
+        pending: participations.filter((p) => p.status === 'pending').length,
       },
     });
   } catch (error) {

@@ -25,6 +25,10 @@ const AdminEvents = () => {
   })
   const [submitting, setSubmitting] = useState(false)
   const [createError, setCreateError] = useState('')
+  const [showRegistrationsModal, setShowRegistrationsModal] = useState(false)
+  const [eventParticipations, setEventParticipations] = useState([])
+  const [pendingCount, setPendingCount] = useState(0)
+  const [loadingParticipations, setLoadingParticipations] = useState(false)
 
   useEffect(() => {
     fetchEvents()
@@ -78,6 +82,48 @@ const AdminEvents = () => {
       fetchEvents()
     } catch (err) {
       alert(err.response?.data?.message || 'Failed to assign volunteers')
+    }
+  }
+
+  const openRegistrationsModal = async (event) => {
+    setSelectedEvent(event)
+    setShowRegistrationsModal(true)
+    setLoadingParticipations(true)
+    try {
+      const response = await axios.get(`/api/admin/events/${event._id}/participations`)
+      setEventParticipations(response.data.participations)
+      setPendingCount(response.data.pendingCount || 0)
+    } catch (err) {
+      alert(err.response?.data?.message || 'Failed to load registrations')
+      setEventParticipations([])
+    } finally {
+      setLoadingParticipations(false)
+    }
+  }
+
+  const handleApproveParticipation = async (participationId) => {
+    try {
+      await axios.patch(`/api/admin/participations/${participationId}/approve`)
+      if (selectedEvent) {
+        const response = await axios.get(`/api/admin/events/${selectedEvent._id}/participations`)
+        setEventParticipations(response.data.participations)
+        setPendingCount(response.data.pendingCount || 0)
+      }
+    } catch (err) {
+      alert(err.response?.data?.message || 'Failed to approve registration')
+    }
+  }
+
+  const handleRejectParticipation = async (participationId) => {
+    try {
+      await axios.patch(`/api/admin/participations/${participationId}/reject`)
+      if (selectedEvent) {
+        const response = await axios.get(`/api/admin/events/${selectedEvent._id}/participations`)
+        setEventParticipations(response.data.participations)
+        setPendingCount(response.data.pendingCount || 0)
+      }
+    } catch (err) {
+      alert(err.response?.data?.message || 'Failed to reject registration')
     }
   }
 
@@ -223,6 +269,12 @@ const AdminEvents = () => {
                       )}
                       {event.status === 'approved' && (
                         <>
+                          <button
+                            onClick={() => openRegistrationsModal(event)}
+                            className="btn btn-outline btn-sm"
+                          >
+                            Manage Registrations
+                          </button>
                           <button
                             onClick={() => {
                               setSelectedEvent(event)
@@ -419,6 +471,81 @@ const AdminEvents = () => {
                   </button>
                 </div>
               </form>
+            </div>
+          </div>
+        )}
+
+        {/* Manage Registrations Modal */}
+        {showRegistrationsModal && selectedEvent && (
+          <div className="modal-overlay" onClick={() => setShowRegistrationsModal(false)}>
+            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+              <h2>Manage Registrations - {selectedEvent.title}</h2>
+              <p className="modal-subtitle">
+                Volunteers who self-register appear below. Approve or reject pending requests.
+              </p>
+              {loadingParticipations ? (
+                <div className="loading-container">
+                  <div className="spinner"></div>
+                  <p>Loading registrations...</p>
+                </div>
+              ) : eventParticipations.length === 0 ? (
+                <p className="empty-state">No volunteer registrations for this event yet.</p>
+              ) : (
+                <div className="registrations-list">
+                  {eventParticipations.map((p) => (
+                    <div key={p._id} className="registration-item">
+                      <div>
+                        <strong>{p.volunteer?.name}</strong>
+                        <span className="registration-email"> ({p.volunteer?.email})</span>
+                      </div>
+                      <div className="registration-meta">
+                        <span
+                          className={`status-badge status-${p.status}`}
+                          style={{
+                            backgroundColor:
+                              p.status === 'pending'
+                                ? '#ffc107'
+                                : p.status === 'registered' || p.status === 'confirmed'
+                                ? '#17a2b8'
+                                : p.status === 'attended'
+                                ? '#28a745'
+                                : '#6c757d',
+                          }}
+                        >
+                          {p.status}
+                        </span>
+                        {p.status === 'pending' && (
+                          <span className="registration-actions">
+                            <button
+                              onClick={() => handleApproveParticipation(p._id)}
+                              className="btn btn-success btn-sm"
+                            >
+                              Approve
+                            </button>
+                            <button
+                              onClick={() => handleRejectParticipation(p._id)}
+                              className="btn btn-danger btn-sm"
+                            >
+                              Reject
+                            </button>
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <div className="modal-actions" style={{ marginTop: '1rem' }}>
+                <button
+                  onClick={() => {
+                    setShowRegistrationsModal(false)
+                    setSelectedEvent(null)
+                  }}
+                  className="btn btn-outline"
+                >
+                  Close
+                </button>
+              </div>
             </div>
           </div>
         )}

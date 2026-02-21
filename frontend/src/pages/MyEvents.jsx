@@ -39,7 +39,8 @@ const MyEvents = () => {
 
   const getStatusColor = (status) => {
     const colors = {
-      registered: '#ffc107',
+      pending: '#ffc107',
+      registered: '#17a2b8',
       confirmed: '#17a2b8',
       attended: '#28a745',
       absent: '#dc3545',
@@ -96,6 +97,13 @@ const MyEvents = () => {
               <p>Registered</p>
             </div>
           </div>
+          <div className="summary-card">
+            <div className="summary-icon">⏳</div>
+            <div className="summary-content">
+              <h3>{summary.pending || 0}</h3>
+              <p>Pending</p>
+            </div>
+          </div>
         </div>
 
         {/* Filters */}
@@ -107,6 +115,7 @@ const MyEvents = () => {
               onChange={(e) => setFilters({ ...filters, status: e.target.value, page: 1 })}
             >
               <option value="">All Status</option>
+              <option value="pending">Pending</option>
               <option value="registered">Registered</option>
               <option value="confirmed">Confirmed</option>
               <option value="attended">Attended</option>
