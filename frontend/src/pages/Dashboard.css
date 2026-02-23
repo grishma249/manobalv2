@@ -56,24 +56,22 @@
   box-shadow: var(--shadow-lg);
 }
 
-.stat-card-primary {
+.stat-card-primary,
+.stat-card-accent,
+.stat-card {
   background: var(--gradient-primary);
   color: var(--text-light);
   border: none;
 }
 
-.stat-card-primary .stat-label {
+.stat-card-primary .stat-label,
+.stat-card-accent .stat-label,
+.stat-card .stat-label {
   color: rgba(255, 255, 255, 0.9);
 }
 
-.stat-card-accent {
-  background: var(--gradient-accent);
+.stat-card .stat-value {
   color: var(--text-light);
-  border: none;
-}
-
-.stat-card-accent .stat-label {
-  color: rgba(255, 255, 255, 0.9);
 }
 
 .stat-icon {
@@ -93,9 +91,6 @@
   color: inherit;
 }
 
-.stat-card:not(.stat-card-primary):not(.stat-card-accent) .stat-value {
-  color: var(--text-primary);
-}
 
 .stat-label {
   font-size: 13px;
