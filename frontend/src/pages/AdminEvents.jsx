@@ -22,6 +22,7 @@ const AdminEvents = () => {
     targetAudience: '',
     numberOfStudents: '',
     notes: '',
+    allowedParticipationTypes: ['VOLUNTEER'],
   })
   const [submitting, setSubmitting] = useState(false)
   const [createError, setCreateError] = useState('')
@@ -151,6 +152,7 @@ const AdminEvents = () => {
         targetAudience: '',
         numberOfStudents: '',
         notes: '',
+        allowedParticipationTypes: ['VOLUNTEER'],
       })
       fetchEvents()
       alert('Event created successfully! It is now visible to volunteers.')
@@ -405,6 +407,53 @@ const AdminEvents = () => {
                     placeholder="Event venue or address"
                     required
                   />
+                </div>
+                <div className="form-group">
+                  <label>Allowed Participation</label>
+                  <div className="participation-options">
+                    <label>
+                      <input
+                        type="checkbox"
+                        checked={createFormData.allowedParticipationTypes.includes('VOLUNTEER')}
+                        onChange={(e) => {
+                          const current = createFormData.allowedParticipationTypes || []
+                          const next = e.target.checked
+                            ? Array.from(new Set([...current, 'VOLUNTEER']))
+                            : current.filter((t) => t !== 'VOLUNTEER')
+                          setCreateFormData({ ...createFormData, allowedParticipationTypes: next })
+                        }}
+                      />
+                      <span>Volunteers</span>
+                    </label>
+                    <label>
+                      <input
+                        type="checkbox"
+                        checked={createFormData.allowedParticipationTypes.includes('DONOR')}
+                        onChange={(e) => {
+                          const current = createFormData.allowedParticipationTypes || []
+                          const next = e.target.checked
+                            ? Array.from(new Set([...current, 'DONOR']))
+                            : current.filter((t) => t !== 'DONOR')
+                          setCreateFormData({ ...createFormData, allowedParticipationTypes: next })
+                        }}
+                      />
+                      <span>Donors</span>
+                    </label>
+                    <label>
+                      <input
+                        type="checkbox"
+                        checked={createFormData.allowedParticipationTypes.includes('ATTENDEE')}
+                        onChange={(e) => {
+                          const current = createFormData.allowedParticipationTypes || []
+                          const next = e.target.checked
+                            ? Array.from(new Set([...current, 'ATTENDEE']))
+                            : current.filter((t) => t !== 'ATTENDEE')
+                          setCreateFormData({ ...createFormData, allowedParticipationTypes: next })
+                        }}
+                      />
+                      <span>Public Attendees</span>
+                    </label>
+                  </div>
                 </div>
                 <div className="form-row">
                   <div className="form-group">

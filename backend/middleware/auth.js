@@ -33,6 +33,21 @@ const authenticate = async (req, res, next) => {
   }
 };
 
+// Optional auth - attaches user if token valid, does not reject if no token
+const optionalAuthenticate = async (req, res, next) => {
+  try {
+    const token = req.header('Authorization')?.replace('Bearer ', '');
+    if (!token) return next();
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findById(decoded.userId).select('-password');
+    if (user && user.isActive) req.user = user;
+    next();
+  } catch {
+    next();
+  }
+};
+
 // Middleware to check if user has specific role
 const authorize = (...roles) => {
   return (req, res, next) => {
@@ -48,5 +63,5 @@ const authorize = (...roles) => {
   };
 };
 
-module.exports = { authenticate, authorize };
+module.exports = { authenticate, authorize, optionalAuthenticate };
 

@@ -54,6 +54,12 @@ const eventSchema = new mongoose.Schema(
     notes: {
       type: String,
     },
+    // Controls who can participate in this event (by role-type, not auth role)
+    allowedParticipationTypes: {
+      type: [String],
+      enum: ['VOLUNTEER', 'DONOR', 'ATTENDEE'],
+      default: ['VOLUNTEER'],
+    },
   },
   {
     timestamps: true,

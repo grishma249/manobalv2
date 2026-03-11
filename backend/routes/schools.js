@@ -38,6 +38,8 @@ router.post(
         ...req.body,
         requestedBy: req.user._id,
         status: 'pending',
+        // School-requested events default to volunteer participation; admin can expand later
+        allowedParticipationTypes: ['VOLUNTEER'],
       };
 
       const event = new Event(eventData);

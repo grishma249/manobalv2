@@ -12,6 +12,11 @@ const Dashboard = () => {
   const [donationLoading, setDonationLoading] = useState(false)
   const [volunteerData, setVolunteerData] = useState({ summary: null, participations: [] })
   const [volunteerLoading, setVolunteerLoading] = useState(false)
+  const [eventParticipationData, setEventParticipationData] = useState({
+    summary: null,
+    participations: [],
+  })
+  const [eventParticipationLoading, setEventParticipationLoading] = useState(false)
   const [schoolData, setSchoolData] = useState({ summary: null, events: [] })
   const [schoolLoading, setSchoolLoading] = useState(false)
 
@@ -34,6 +39,21 @@ const Dashboard = () => {
         console.error('Failed to load donation data:', error)
       } finally {
         setDonationLoading(false)
+      }
+    }
+
+    const fetchEventParticipationData = async () => {
+      try {
+        setEventParticipationLoading(true)
+        const response = await axios.get('/api/events/participations/me')
+        setEventParticipationData({
+          summary: response.data.summary || null,
+          participations: response.data.participations || [],
+        })
+      } catch (error) {
+        console.error('Failed to load event participations:', error)
+      } finally {
+        setEventParticipationLoading(false)
       }
     }
 
@@ -67,9 +87,13 @@ const Dashboard = () => {
       }
     }
 
-    if (user?.role === 'donor') fetchDonationData()
-    else if (user?.role === 'volunteer') fetchVolunteerData()
-    else if (user?.role === 'school') fetchSchoolData()
+    if (user?.role === 'donor') {
+      fetchDonationData()
+      fetchEventParticipationData()
+    } else if (user?.role === 'volunteer') {
+      fetchVolunteerData()
+      fetchEventParticipationData()
+    } else if (user?.role === 'school') fetchSchoolData()
   }, [user])
 
   const getWelcomeMessage = (role) => {
@@ -124,7 +148,7 @@ const Dashboard = () => {
           {/* DONOR DASHBOARD */}
           {user?.role === 'donor' && (
             <>
-              {donationLoading ? (
+              {donationLoading || eventParticipationLoading ? (
                 <div className="dashboard-loading">
                   <div className="spinner"></div>
                   <p>Loading your dashboard...</p>
@@ -160,6 +184,15 @@ const Dashboard = () => {
                       <div className="stat-content">
                         <span className="stat-value">{donationData.summary?.physicalCount || 0}</span>
                         <span className="stat-label">Physical Donations</span>
+                      </div>
+                    </div>
+                    <div className="stat-card">
+                      <div className="stat-icon">🤝</div>
+                      <div className="stat-content">
+                        <span className="stat-value">
+                          {eventParticipationData.summary?.donor || 0}
+                        </span>
+                        <span className="stat-label">Events Supported</span>
                       </div>
                     </div>
                   </div>
@@ -200,11 +233,50 @@ const Dashboard = () => {
                     )}
                   </div>
 
+                  {(eventParticipationData.participations?.filter(
+                    (p) => p.participationType === 'DONOR'
+                  ).length > 0) && (
+                    <div className="dashboard-section">
+                      <div className="section-header">
+                        <h3>Events Supported</h3>
+                        <Link to="/events/public" className="section-link">Browse events</Link>
+                      </div>
+                      <div className="recent-list">
+                        {eventParticipationData.participations
+                          .filter((p) => p.participationType === 'DONOR')
+                          .slice(0, 5)
+                          .map((p) => (
+                            <div key={p._id} className="recent-item">
+                              <div className="recent-item-main">
+                                <span className="recent-title">{p.event?.title || 'Event'}</span>
+                                <span
+                                  className="recent-badge"
+                                  style={{ backgroundColor: getStatusColor(p.status) }}
+                                >
+                                  {p.status}
+                                </span>
+                              </div>
+                              <span className="recent-meta">
+                                {p.event?.date
+                                  ? new Date(p.event.date).toLocaleDateString()
+                                  : ''} • {getEventTypeDisplay(p.event?.eventType)}
+                              </span>
+                            </div>
+                          ))}
+                      </div>
+                    </div>
+                  )}
+
                   <div className="dashboard-card quick-actions-card">
                     <h3>Quick Actions</h3>
-                    <a href="/donations" className="action-link">
-                      💰 Make a Donation
-                    </a>
+                    <div className="quick-actions">
+                      <a href="/donations" className="action-link">
+                        💰 Make a Donation
+                      </a>
+                      <a href="/events/public" className="action-link">
+                        🎫 Browse Events to Support
+                      </a>
+                    </div>
                   </div>
                 </>
               )}
@@ -214,7 +286,7 @@ const Dashboard = () => {
           {/* VOLUNTEER DASHBOARD */}
           {user?.role === 'volunteer' && (
             <>
-              {volunteerLoading ? (
+              {volunteerLoading || eventParticipationLoading ? (
                 <div className="dashboard-loading">
                   <div className="spinner"></div>
                   <p>Loading your dashboard...</p>
@@ -253,11 +325,20 @@ const Dashboard = () => {
                         <span className="stat-label">Pending</span>
                       </div>
                     </div>
+                    <div className="stat-card">
+                      <div className="stat-icon">🎫</div>
+                      <div className="stat-content">
+                        <span className="stat-value">
+                          {eventParticipationData.summary?.attendee || 0}
+                        </span>
+                        <span className="stat-label">Events Attending</span>
+                      </div>
+                    </div>
                   </div>
 
                   <div className="dashboard-section">
                     <div className="section-header">
-                      <h3>Recent Events</h3>
+                      <h3>Recent Events (Volunteered)</h3>
                       <Link to="/my-events" className="section-link">View all</Link>
                     </div>
                     {volunteerData.participations.length > 0 ? (
@@ -289,10 +370,45 @@ const Dashboard = () => {
                     )}
                   </div>
 
+                  {(eventParticipationData.participations?.filter(
+                    (p) => p.participationType === 'ATTENDEE'
+                  ).length > 0) && (
+                    <div className="dashboard-section">
+                      <div className="section-header">
+                        <h3>Events Attending</h3>
+                        <Link to="/events/public" className="section-link">Browse events</Link>
+                      </div>
+                      <div className="recent-list">
+                        {eventParticipationData.participations
+                          .filter((p) => p.participationType === 'ATTENDEE')
+                          .slice(0, 5)
+                          .map((p) => (
+                            <div key={p._id} className="recent-item">
+                              <div className="recent-item-main">
+                                <span className="recent-title">{p.event?.title || 'Event'}</span>
+                                <span
+                                  className="recent-badge"
+                                  style={{ backgroundColor: getStatusColor(p.status) }}
+                                >
+                                  {p.status}
+                                </span>
+                              </div>
+                              <span className="recent-meta">
+                                {p.event?.date
+                                  ? new Date(p.event.date).toLocaleDateString()
+                                  : ''} • {getEventTypeDisplay(p.event?.eventType)}
+                              </span>
+                            </div>
+                          ))}
+                      </div>
+                    </div>
+                  )}
+
                   <div className="dashboard-card quick-actions-card">
                     <h3>Quick Actions</h3>
                     <div className="quick-actions">
                       <a href="/events" className="action-link">📅 Browse Available Events</a>
+                      <a href="/events/public" className="action-link">🎫 Browse Public Events</a>
                       <a href="/my-events" className="action-link">🗂️ View My Registered Events</a>
                     </div>
                   </div>

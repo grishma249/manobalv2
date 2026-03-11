@@ -355,6 +355,10 @@ router.post(
       .withMessage('Invalid event type'),
     body('date').isISO8601().withMessage('Valid date is required'),
     body('location').trim().notEmpty().withMessage('Location is required'),
+    body('allowedParticipationTypes')
+      .optional()
+      .isArray()
+      .withMessage('allowedParticipationTypes must be an array'),
   ],
   async (req, res) => {
     try {
@@ -363,8 +367,13 @@ router.post(
         return res.status(400).json({ errors: errors.array() });
       }
 
+      const allowedTypes = Array.isArray(req.body.allowedParticipationTypes)
+        ? req.body.allowedParticipationTypes
+        : ['VOLUNTEER'];
+
       const eventData = {
         ...req.body,
+        allowedParticipationTypes: allowedTypes,
         requestedBy: req.user._id, // Admin creates the event
         status: 'approved',
         approvedBy: req.user._id,
