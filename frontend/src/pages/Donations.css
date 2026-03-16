@@ -50,6 +50,35 @@
   color: #1a1a1a;
 }
 
+.donation-linked-event h2 {
+  color: var(--primary-color);
+}
+
+.linked-event-box {
+  background: #f8f9fa;
+  border: 1px solid #eee;
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.linked-event-row {
+  display: flex;
+  gap: 8px;
+  padding: 6px 0;
+  color: #444;
+}
+
+.linked-event-row strong {
+  min-width: 72px;
+  color: #222;
+}
+
+.linked-event-note {
+  margin-top: 10px;
+  font-size: 13px;
+  color: #666;
+}
+
 .donation-help {
   font-size: 14px;
   color: #777;

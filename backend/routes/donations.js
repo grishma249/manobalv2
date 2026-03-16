@@ -2,6 +2,8 @@ const express = require('express')
 const { body, validationResult } = require('express-validator')
 const { authenticate, authorize } = require('../middleware/auth')
 const Donation = require('../models/Donation')
+const Event = require('../models/Event')
+const EventParticipation = require('../models/EventParticipation')
 
 const router = express.Router()
 
@@ -17,6 +19,7 @@ router.post(
   authorize('donor'),
   [
     body('type').isIn(['monetary', 'physical']).withMessage('Invalid donation type'),
+    body('eventId').optional().isMongoId().withMessage('eventId must be a valid id'),
     body('amount')
       .if(body('type').equals('monetary'))
       .isFloat({ gt: 0 })
@@ -38,8 +41,22 @@ router.post(
         return res.status(400).json({ errors: errors.array() })
       }
 
-      const { type, amount, currency, category, quantity, unit, description, purpose, transactionRef, dropoffDetails } =
+      const { type, amount, currency, category, quantity, unit, description, purpose, transactionRef, dropoffDetails, eventId } =
         req.body
+
+      let event = null
+      if (eventId) {
+        event = await Event.findById(eventId)
+        if (!event || event.status !== 'approved') {
+          return res.status(400).json({ message: 'Invalid event for donation' })
+        }
+        if (
+          !Array.isArray(event.allowedParticipationTypes) ||
+          !event.allowedParticipationTypes.includes('DONOR')
+        ) {
+          return res.status(400).json({ message: 'This event is not accepting donor support' })
+        }
+      }
 
       const donation = new Donation({
         donor: req.user._id,
@@ -54,9 +71,28 @@ router.post(
         transactionRef,
         dropoffDetails,
         status: 'pending',
+        event: event ? event._id : undefined,
       })
 
       await donation.save()
+
+      // Link donor -> event participation (one per event/user/type)
+      if (event) {
+        await EventParticipation.updateOne(
+          { event: event._id, user: req.user._id, participationType: 'DONOR' },
+          {
+            $setOnInsert: {
+              event: event._id,
+              user: req.user._id,
+              participationType: 'DONOR',
+              status: 'registered',
+              name: req.user.name,
+              email: req.user.email,
+            },
+          },
+          { upsert: true }
+        )
+      }
 
       const populatedDonation = await Donation.findById(donation._id).populate('donor', 'name email')
 

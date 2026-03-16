@@ -2,10 +2,12 @@ import React, { useState, useEffect } from 'react'
 import AppShell from '../components/AppShell'
 import { useAuth } from '../context/AuthContext'
 import axios from 'axios'
+import { useLocation } from 'react-router-dom'
 import './Donations.css'
 
 const Donations = () => {
   const { user } = useAuth()
+  const location = useLocation()
   const isAdmin = user?.role === 'admin'
   const [donations, setDonations] = useState([])
   const [loading, setLoading] = useState(false)
@@ -26,6 +28,31 @@ const Donations = () => {
     description: '',
   })
   const [submitting, setSubmitting] = useState(false)
+  const [linkedEvent, setLinkedEvent] = useState(null)
+  const [linkedEventLoading, setLinkedEventLoading] = useState(false)
+
+  const eventIdFromQuery = new URLSearchParams(location.search).get('eventId')
+
+  useEffect(() => {
+    const fetchLinkedEvent = async () => {
+      if (!eventIdFromQuery || isAdmin) {
+        setLinkedEvent(null)
+        return
+      }
+      try {
+        setLinkedEventLoading(true)
+        const res = await axios.get(`/api/events/${eventIdFromQuery}`)
+        setLinkedEvent(res.data.event || null)
+      } catch (err) {
+        setLinkedEvent(null)
+      } finally {
+        setLinkedEventLoading(false)
+      }
+    }
+
+    fetchLinkedEvent()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [eventIdFromQuery, isAdmin])
 
   useEffect(() => {
     if (isAdmin) {
@@ -85,6 +112,7 @@ const Donations = () => {
         purpose: monetaryForm.purpose,
         description: monetaryForm.purpose,
         transactionRef: monetaryForm.transactionRef,
+        eventId: linkedEvent?._id || undefined,
       })
       setMonetaryForm({ amount: '', purpose: '', transactionRef: '' })
       await fetchDonorDonations()
@@ -112,6 +140,7 @@ const Donations = () => {
         unit: goodsForm.unit,
         description: goodsForm.description,
         dropoffDetails: goodsForm.dropoffDetails,
+        eventId: linkedEvent?._id || undefined,
       })
       setGoodsForm({
         category: 'Books & Stationery',
@@ -155,6 +184,34 @@ const Donations = () => {
           <div className="container donations-layout">
             {!isAdmin && (
               <div className="donation-forms">
+                {eventIdFromQuery && (
+                  <div className="donation-card donation-linked-event">
+                    <h2>Donate to Event</h2>
+                    {linkedEventLoading ? (
+                      <p>Loading event...</p>
+                    ) : linkedEvent ? (
+                      <div className="linked-event-box">
+                        <div className="linked-event-row">
+                          <strong>Event:</strong> <span>{linkedEvent.title}</span>
+                        </div>
+                        <div className="linked-event-row">
+                          <strong>Date:</strong>{' '}
+                          <span>{new Date(linkedEvent.date).toLocaleDateString()}</span>
+                        </div>
+                        <div className="linked-event-row">
+                          <strong>Location:</strong> <span>{linkedEvent.location}</span>
+                        </div>
+                        <p className="linked-event-note">
+                          This donation will be linked to the selected event.
+                        </p>
+                      </div>
+                    ) : (
+                      <p className="alert alert-error">
+                        Could not load this event. You can still donate without linking it.
+                      </p>
+                    )}
+                  </div>
+                )}
                 <div className="donation-card">
                   <h2>Monetary Donation</h2>
                   <p className="donation-help">

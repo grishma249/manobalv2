@@ -55,6 +55,10 @@ const donationSchema = new mongoose.Schema(
     dropoffDetails: {
       type: String,
     },
+    event: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Event',
+    },
     verifiedBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',

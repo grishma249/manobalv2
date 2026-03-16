@@ -1,8 +1,11 @@
 import React, { useState } from 'react'
 import Navigation from '../components/Navigation'
+import AppShell from '../components/AppShell'
+import { useAuth } from '../context/AuthContext'
 import './Contact.css'
 
 const Contact = () => {
+  const { user } = useAuth()
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -26,9 +29,8 @@ const Contact = () => {
     setTimeout(() => setSubmitted(false), 3000)
   }
 
-  return (
-    <div className="contact-page">
-      <Navigation />
+  const content = (
+    <>
       <div className="contact-hero">
         <div className="container">
           <h1>Get in Touch</h1>
@@ -125,6 +127,23 @@ const Contact = () => {
           </div>
         </div>
       </div>
+    </>
+  )
+
+  // Public users keep the simple nav-only layout
+  if (!user) {
+    return (
+      <div className="contact-page">
+        <Navigation />
+        {content}
+      </div>
+    )
+  }
+
+  // Logged-in users see the AppShell with sidebar + contact content
+  return (
+    <div className="contact-page">
+      <AppShell>{content}</AppShell>
     </div>
   )
 }

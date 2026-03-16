@@ -26,9 +26,14 @@ const AppShell = ({ children }) => {
       icon: '👥',
     },
     {
-      path: role === 'admin' ? '/admin/events' : '/events',
+      path:
+        role === 'admin'
+          ? '/admin/events'
+          : role === 'donor'
+          ? '/events/public'
+          : '/events',
       label: role === 'volunteer' ? 'Event Opportunities' : 'Events',
-      roles: ['admin', 'volunteer', 'school'],
+      roles: ['admin', 'volunteer', 'school', 'donor'],
       icon: '📅',
     },
     {

@@ -1,11 +1,14 @@
 import React, { useEffect, useState } from 'react'
 import axios from 'axios'
 import Navigation from '../components/Navigation'
+import AppShell from '../components/AppShell'
 import { useAuth } from '../context/AuthContext'
+import { useNavigate } from 'react-router-dom'
 import './PublicEvents.css'
 
 const PublicEvents = () => {
   const { user } = useAuth()
+  const navigate = useNavigate()
   const [events, setEvents] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -76,9 +79,18 @@ const PublicEvents = () => {
   }
 
   const handleAttendOrDonorClick = (event, type) => {
+    if (type === 'DONOR') {
+      if (!user) {
+        navigate('/login')
+        return
+      }
+      // Structured flow: donor donation linked to event
+      navigate(`/donations?eventId=${event._id}`)
+      return
+    }
+
+    // ATTENDEE flow stays as participation (public allowed)
     if (user && type === 'ATTENDEE') {
-      handleParticipateDirect(event, type)
-    } else if (user && type === 'DONOR') {
       handleParticipateDirect(event, type)
     } else {
       openParticipateModal(event, type)
@@ -108,9 +120,8 @@ const PublicEvents = () => {
     Array.isArray(event.allowedParticipationTypes) &&
     event.allowedParticipationTypes.includes(type)
 
-  return (
-    <div className="public-events-page">
-      <Navigation />
+  const content = (
+    <>
       <div className="public-events-hero">
         <div className="container">
           <h1>Upcoming Events</h1>
@@ -178,6 +189,23 @@ const PublicEvents = () => {
           )}
         </div>
       </div>
+    </>
+  )
+
+  // Unauthenticated users use the simple top nav layout
+  if (!user) {
+    return (
+      <div className="public-events-page">
+        <Navigation />
+        {content}
+      </div>
+    )
+  }
+
+  // Authenticated users (donor/volunteer/school) see AppShell with sidebar
+  return (
+    <div className="public-events-page">
+      <AppShell>{content}</AppShell>
 
       {/* Participation Modal (for public users) */}
       {showParticipateModal && selectedEvent && (
