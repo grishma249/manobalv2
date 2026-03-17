@@ -17,8 +17,6 @@ const LandingPage = () => {
         'See the impact of your generosity',
         'Transparent donation records',
       ],
-      icon: '💝',
-      color: '#FF6B6B',
     },
     volunteer: {
       title: 'For Volunteers',
@@ -29,8 +27,6 @@ const LandingPage = () => {
         'Track your participation history',
         'Build your volunteer portfolio',
       ],
-      icon: '🤝',
-      color: '#4ECDC4',
     },
     school: {
       title: 'For Schools',
@@ -41,8 +37,6 @@ const LandingPage = () => {
         'Coordinate with Manobal Nepal',
         'Access educational resources',
       ],
-      icon: '🏫',
-      color: '#95E1D3',
     },
     admin: {
       title: 'For Administrators',
@@ -53,8 +47,6 @@ const LandingPage = () => {
         'Track organizational metrics',
         'Coordinate all activities',
       ],
-      icon: '⚙️',
-      color: '#F38181',
     },
   }
 
@@ -67,7 +59,7 @@ const LandingPage = () => {
         <div className="hero-background"></div>
         <div className="hero-content">
           <div className="hero-badge">
-            <span>🌱 Empowering Communities</span>
+            <span>Empowering Communities</span>
           </div>
           <h1 className="hero-title">
             Welcome to <span className="gradient-text">Manobal Nepal</span>
@@ -111,30 +103,30 @@ const LandingPage = () => {
             </p>
           </div>
 
-          <div className="mission-grid">
-            <div className="mission-card">
-              <div className="mission-icon">📅</div>
-              <h3>Event Coordination</h3>
-              <p>
-                Streamlined event management system for workshops, awareness programs,
-                and community activities.
-              </p>
+          <div className="mission-split">
+            <div className="mission-grid">
+              <div className="mission-card">
+                <h3>Event Coordination</h3>
+                <p>
+                  Streamlined event management for workshops, awareness programs,
+                  and community activities.
+                </p>
+              </div>
+              <div className="mission-card">
+                <h3>Donation Tracking</h3>
+                <p>
+                  Transparent tracking for monetary contributions and physical goods.
+                </p>
+              </div>
+              <div className="mission-card">
+                <h3>Volunteer Management</h3>
+                <p>
+                  Efficient coordination of participation, attendance, and impact.
+                </p>
+              </div>
             </div>
-            <div className="mission-card">
-              <div className="mission-icon">💰</div>
-              <h3>Donation Tracking</h3>
-              <p>
-                Transparent and secure tracking of monetary contributions and
-                physical goods donations.
-              </p>
-            </div>
-            <div className="mission-card">
-              <div className="mission-icon">👥</div>
-              <h3>Volunteer Management</h3>
-              <p>
-                Efficient coordination of volunteer participation, attendance, and
-                impact tracking.
-              </p>
+            <div className="mission-media" aria-hidden="true">
+              <img src="/img2.jpeg" alt="" />
             </div>
           </div>
         </div>
@@ -153,8 +145,7 @@ const LandingPage = () => {
 
           <div className="roles-grid">
             {Object.entries(roleFeatures).map(([role, data]) => (
-              <div key={role} className="role-card" style={{ '--role-color': data.color }}>
-                <div className="role-icon">{data.icon}</div>
+              <div key={role} className="role-card">
                 <h3>{data.title}</h3>
                 <p className="role-description">{data.description}</p>
                 <ul className="role-features">
@@ -172,6 +163,30 @@ const LandingPage = () => {
                 )}
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Visual Impact Section */}
+      <section className="impact-visuals">
+        <div className="container">
+          <div className="section-header">
+            <h2 className="section-title">Work in Action</h2>
+            <p className="section-description">
+              A glimpse into programs and community initiatives powered by partners,
+              volunteers, and supporters.
+            </p>
+          </div>
+          <div className="image-mosaic">
+            <div className="mosaic-item mosaic-item-lg">
+              <img src="/img4.jpeg" alt="Community program highlight" loading="lazy" />
+            </div>
+            <div className="mosaic-item">
+              <img src="/img5.jpeg" alt="Education outreach" loading="lazy" />
+            </div>
+            <div className="mosaic-item">
+              <img src="/img6.jpeg" alt="Volunteer activity" loading="lazy" />
+            </div>
           </div>
         </div>
       </section>

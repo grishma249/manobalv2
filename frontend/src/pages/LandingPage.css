@@ -29,8 +29,12 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(135deg, var(--primary-light) 0%, var(--surface-color) 100%);
-  opacity: 0.5;
+  background-image:
+    linear-gradient(135deg, rgba(25, 118, 210, 0.55) 0%, rgba(3, 9, 18, 0.55) 100%),
+    url('/img1.jpeg');
+  background-size: cover;
+  background-position: center;
+  opacity: 1;
   z-index: 0;
 }
 
@@ -41,8 +45,8 @@
   left: -50%;
   width: 200%;
   height: 200%;
-  background: radial-gradient(circle, var(--primary-light) 0%, transparent 70%);
-  animation: rotate 20s linear infinite;
+  background: radial-gradient(circle, rgba(227, 242, 253, 0.45) 0%, transparent 70%);
+  animation: rotate 10s linear infinite;
 }
 
 @keyframes rotate {
@@ -80,7 +84,7 @@
   font-weight: 800;
   line-height: 1.2;
   margin-bottom: 24px;
-  color: #1a1a1a;
+  color: white;
 }
 
 .gradient-text {
@@ -92,7 +96,7 @@
 
 .hero-subtitle {
   font-size: clamp(18px, 2.5vw, 24px);
-  color: black !important;
+  color: rgba(255, 255, 255, 0.92) !important;
   line-height: 1.6;
   margin-bottom: 40px;
   max-width: 700px;
@@ -126,7 +130,7 @@
   gap: 8px;
   color: #888;
   font-size: 14px;
-  animation: bounce 2s infinite;
+  animation: bounce 1.8s infinite;
 }
 
 @keyframes bounce {
@@ -179,6 +183,28 @@
   margin-top: 60px;
 }
 
+.mission-split {
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr;
+  gap: 32px;
+  align-items: stretch;
+}
+
+.mission-media {
+  border-radius: 20px;
+  overflow: hidden;
+  border: 1px solid #e9ecef;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08);
+  min-height: 100%;
+}
+
+.mission-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
 .mission-card {
   background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
   padding: 40px;
@@ -211,11 +237,6 @@
   transform: scaleX(1);
 }
 
-.mission-icon {
-  font-size: 48px;
-  margin-bottom: 20px;
-}
-
 .mission-card h3 {
   font-size: 24px;
   font-weight: 700;
@@ -233,6 +254,57 @@
 .roles-section {
   padding: 100px 0;
   background: linear-gradient(180deg, #fafafa 0%, #ffffff 100%);
+}
+
+/* Visual Impact */
+.impact-visuals {
+  padding: 100px 0;
+  background: white;
+}
+
+.image-mosaic {
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr;
+  gap: 20px;
+  align-items: stretch;
+}
+
+.mosaic-item {
+  border-radius: 18px;
+  overflow: hidden;
+  border: 1px solid #e9ecef;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.08);
+}
+
+.mosaic-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.mosaic-item-lg {
+  grid-row: span 2;
+  min-height: 420px;
+}
+
+.mosaic-item:not(.mosaic-item-lg) {
+  min-height: 200px;
+}
+
+@media (max-width: 900px) {
+  .mission-split {
+    grid-template-columns: 1fr;
+  }
+
+  .image-mosaic {
+    grid-template-columns: 1fr;
+  }
+
+  .mosaic-item-lg {
+    grid-row: auto;
+    min-height: 240px;
+  }
 }
 
 .roles-grid {

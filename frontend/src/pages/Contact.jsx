@@ -44,21 +44,36 @@ const Contact = () => {
             <div className="contact-info">
               <h2>Contact Information</h2>
               <div className="info-item">
-                <div className="info-icon">📧</div>
+                <div className="info-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M4 6h16v12H4z" />
+                    <path d="m4 7 8 6 8-6" />
+                  </svg>
+                </div>
                 <div>
                   <h3>Email</h3>
                   <p>contact@manobalnepal.org</p>
                 </div>
               </div>
               <div className="info-item">
-                <div className="info-icon">📱</div>
+                <div className="info-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M7 2h10v20H7z" />
+                    <path d="M11 19h2" />
+                  </svg>
+                </div>
                 <div>
                   <h3>Phone</h3>
                   <p>+977-1-XXXXXXX</p>
                 </div>
               </div>
               <div className="info-item">
-                <div className="info-icon">📍</div>
+                <div className="info-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M12 21s7-4.5 7-11a7 7 0 1 0-14 0c0 6.5 7 11 7 11z" />
+                    <circle cx="12" cy="10" r="2.5" />
+                  </svg>
+                </div>
                 <div>
                   <h3>Address</h3>
                   <p>Kathmandu, Nepal</p>

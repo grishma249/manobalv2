@@ -2,10 +2,24 @@
 
 .auth-page {
   min-height: 100vh;
-  background: #f4f7f6;
+  background:
+    linear-gradient(135deg, rgba(25, 118, 210, 0.62) 0%, rgba(13, 71, 161, 0.62) 100%),
+    url('/img6.jpeg');
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
   display: flex;
   flex-direction: column;
   /* IMPORTANT: keeps navbar on top */
+}
+
+.auth-page::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(circle at 20% 15%, rgba(227, 242, 253, 0.35) 0%, transparent 55%);
+  pointer-events: none;
+  z-index: 0;
 }
 
 /* Center only the form area */
@@ -18,6 +32,8 @@
   border-radius: 18px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
   transition: all 0.25s ease;
+  position: relative;
+  z-index: 1;
 }
 
 .auth-container:hover {

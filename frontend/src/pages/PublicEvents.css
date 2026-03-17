@@ -4,7 +4,11 @@
 }
 
 .public-events-hero {
-  background: var(--gradient-primary);
+  background-image:
+    linear-gradient(135deg, rgba(25, 118, 210, 0.7) 0%, rgba(13, 71, 161, 0.7) 100%),
+    url('/img1.jpeg');
+  background-size: cover;
+  background-position: center;
   color: var(--text-light);
   padding: 110px 0 70px;
   text-align: center;
