@@ -3,9 +3,11 @@ import { Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import Navigation from '../components/Navigation'
 import './LandingPage.css'
+import useScrollReveal from '../hooks/useScrollReveal'
 
 const LandingPage = () => {
   const { isAuthenticated, user } = useAuth()
+  useScrollReveal()
 
   const roleFeatures = {
     donor: {
@@ -104,7 +106,7 @@ const LandingPage = () => {
           </div>
 
           <div className="mission-split">
-            <div className="mission-grid">
+            <div className="mission-grid reveal-stagger">
               <div className="mission-card">
                 <h3>Event Coordination</h3>
                 <p>
@@ -143,7 +145,7 @@ const LandingPage = () => {
             </p>
           </div>
 
-          <div className="roles-grid">
+          <div className="roles-grid reveal-stagger">
             {Object.entries(roleFeatures).map(([role, data]) => (
               <div key={role} className="role-card">
                 <h3>{data.title}</h3>
@@ -177,7 +179,7 @@ const LandingPage = () => {
               volunteers, and supporters.
             </p>
           </div>
-          <div className="image-mosaic">
+          <div className="image-mosaic reveal-stagger">
             <div className="mosaic-item mosaic-item-lg">
               <img src="/img4.jpeg" alt="Community program highlight" loading="lazy" />
             </div>
