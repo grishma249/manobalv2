@@ -57,7 +57,7 @@
   position: absolute;
   inset: 0;
   background-image:
-    linear-gradient(135deg, rgba(25, 118, 210, 0.35) 0%, rgba(3, 9, 18, 0.35) 100%),
+    linear-gradient(135deg, rgba(25, 118, 210, 0.45) 0%, rgba(3, 9, 18, 0.45) 100%),
     url('/img5.jpeg');
   background-size: cover;
   background-position: center;

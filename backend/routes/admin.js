@@ -5,6 +5,7 @@ const User = require('../models/User');
 const Event = require('../models/Event');
 const Donation = require('../models/Donation');
 const VolunteerParticipation = require('../models/VolunteerParticipation');
+const uploadEventImage = require('../middleware/uploadEventImage');
 
 const router = express.Router();
 
@@ -347,6 +348,7 @@ router.patch(
 // @access  Private (Admin only)
 router.post(
   '/events',
+  uploadEventImage.single('image'),
   [
     body('title').trim().notEmpty().withMessage('Title is required'),
     body('description').trim().notEmpty().withMessage('Description is required'),
@@ -355,10 +357,10 @@ router.post(
       .withMessage('Invalid event type'),
     body('date').isISO8601().withMessage('Valid date is required'),
     body('location').trim().notEmpty().withMessage('Location is required'),
-    body('allowedParticipationTypes')
-      .optional()
-      .isArray()
-      .withMessage('allowedParticipationTypes must be an array'),
+    // When using multipart/form-data, arrays may arrive as strings.
+    body('allowedParticipationTypes').optional(),
+    body('isPaid').optional(),
+    body('price').optional(),
   ],
   async (req, res) => {
     try {
@@ -367,13 +369,56 @@ router.post(
         return res.status(400).json({ errors: errors.array() });
       }
 
-      const allowedTypes = Array.isArray(req.body.allowedParticipationTypes)
-        ? req.body.allowedParticipationTypes
-        : ['VOLUNTEER'];
+      // multer fileFilter errors come through as req.fileValidationError
+      if (req.fileValidationError) {
+        return res.status(400).json({ message: req.fileValidationError });
+      }
+
+      const parseAllowedTypes = (input) => {
+        if (Array.isArray(input)) return input;
+        if (typeof input === 'string') {
+          // Accept JSON array string or comma-separated string
+          try {
+            const parsed = JSON.parse(input);
+            if (Array.isArray(parsed)) return parsed;
+          } catch (_e) {
+            // ignore
+          }
+          return input
+            .split(',')
+            .map((s) => s.trim())
+            .filter(Boolean);
+        }
+        return [];
+      };
+
+      const allowedTypes = parseAllowedTypes(req.body.allowedParticipationTypes);
+      const participationEnum = ['VOLUNTEER', 'DONOR', 'ATTENDEE'];
+      const normalizedAllowedTypes =
+        allowedTypes.length > 0
+          ? allowedTypes.filter((t) => participationEnum.includes(t))
+          : ['VOLUNTEER'];
+
+      const isPaid =
+        req.body.isPaid === true ||
+        req.body.isPaid === 'true' ||
+        req.body.isPaid === '1';
+
+      const parsedPrice = isPaid
+        ? parseFloat(req.body.price)
+        : 0;
 
       const eventData = {
         ...req.body,
-        allowedParticipationTypes: allowedTypes,
+        allowedParticipationTypes: normalizedAllowedTypes,
+        imageUrl: req.file
+          ? (() => {
+              const baseUrl = `${req.protocol}://${req.get('host')}`;
+              return `${baseUrl}/uploads/events/${req.file.filename}`;
+            })()
+          : req.body.imageUrl,
+        isPaid: Boolean(isPaid),
+        price: Number.isFinite(parsedPrice) ? parsedPrice : 0,
         requestedBy: req.user._id, // Admin creates the event
         status: 'approved',
         approvedBy: req.user._id,

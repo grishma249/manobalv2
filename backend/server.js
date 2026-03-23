@@ -31,6 +31,13 @@ mongoose
 
 const PORT = process.env.PORT || 5000;
 
+// Serve uploaded event images
+const path = require('path');
+app.use(
+  '/uploads',
+  express.static(path.join(__dirname, 'uploads'))
+);
+
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });

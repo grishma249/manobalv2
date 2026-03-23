@@ -80,6 +80,8 @@ router.get(
         return res.status(400).json({ errors: errors.array() });
       }
 
+      const baseUrl = `${req.protocol}://${req.get('host')}`;
+
       const { status, page = 1, limit = 20 } = req.query;
       const skip = (page - 1) * limit;
       const schoolId = req.user._id;
@@ -95,6 +97,18 @@ router.get(
         .skip(skip)
         .limit(parseInt(limit));
 
+      const normalizeImageUrl = (imageUrl) => {
+        if (!imageUrl) return imageUrl;
+        if (imageUrl.startsWith('/uploads/')) return `${baseUrl}${imageUrl}`;
+        return imageUrl;
+      };
+
+      const eventsWithImages = events.map((e) => {
+        const obj = e.toObject ? e.toObject() : e;
+        obj.imageUrl = normalizeImageUrl(obj.imageUrl);
+        return obj;
+      });
+
       const total = await Event.countDocuments(filter);
 
       // Calculate summary statistics
@@ -109,7 +123,7 @@ router.get(
       };
 
       res.json({
-        events,
+        events: eventsWithImages,
         summary,
         pagination: {
           page: parseInt(page),

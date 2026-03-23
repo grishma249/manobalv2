@@ -31,6 +31,13 @@ const eventParticipationSchema = new mongoose.Schema(
       enum: ['registered', 'attended', 'cancelled'],
       default: 'registered',
     },
+    paymentStatus: {
+      type: String,
+      enum: ['COMPLETED', 'PENDING', 'FAILED'],
+    },
+    paymentId: {
+      type: String,
+    },
   },
   {
     timestamps: true,

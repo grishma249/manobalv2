@@ -60,6 +60,19 @@ const eventSchema = new mongoose.Schema(
       enum: ['VOLUNTEER', 'DONOR', 'ATTENDEE'],
       default: ['VOLUNTEER'],
     },
+    // Optional event image for public/event detail UI
+    imageUrl: {
+      type: String,
+    },
+    // Paid attendee support (ATTENDEE only). Defaults to free for backward compatibility.
+    isPaid: {
+      type: Boolean,
+      default: false,
+    },
+    price: {
+      type: Number,
+      default: 0,
+    },
   },
   {
     timestamps: true,

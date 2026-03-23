@@ -3,7 +3,7 @@ import axios from 'axios'
 import Navigation from '../components/Navigation'
 import AppShell from '../components/AppShell'
 import { useAuth } from '../context/AuthContext'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import './PublicEvents.css'
 
 const PublicEvents = () => {
@@ -13,10 +13,15 @@ const PublicEvents = () => {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [registeringId, setRegisteringId] = useState(null)
+  const [attendingEventIds, setAttendingEventIds] = useState([])
   const [showParticipateModal, setShowParticipateModal] = useState(false)
   const [selectedEvent, setSelectedEvent] = useState(null)
   const [participateType, setParticipateType] = useState(null)
   const [formData, setFormData] = useState({ name: '', email: '', phone: '' })
+  const [showPaymentModal, setShowPaymentModal] = useState(false)
+  const [paymentProcessing, setPaymentProcessing] = useState(false)
+  const [paymentError, setPaymentError] = useState('')
+  const [paymentPayload, setPaymentPayload] = useState(null) // {name,email,phone} for public flows
 
   useEffect(() => {
     const fetchEvents = async () => {
@@ -33,6 +38,31 @@ const PublicEvents = () => {
 
     fetchEvents()
   }, [])
+
+  // If the user is logged in, mark events they're already attending
+  useEffect(() => {
+    const fetchMyAttendances = async () => {
+      if (!user) return
+      try {
+        const res = await axios.get('/api/events/participations/me')
+        const ids =
+          res.data?.participations
+            ?.filter((p) => p.participationType === 'ATTENDEE')
+            .map((p) => p.event?._id?.toString())
+            .filter(Boolean) || []
+        setAttendingEventIds(ids)
+      } catch (_e) {
+        setAttendingEventIds([])
+      }
+    }
+
+    fetchMyAttendances()
+  }, [user])
+
+  const fallbackImage = '/img1.jpeg'
+
+  const isAlreadyAttending = (event) =>
+    attendingEventIds.includes(event?._id?.toString())
 
   const needsForm = (type) => {
     if (user) return false
@@ -55,25 +85,75 @@ const PublicEvents = () => {
     }
     try {
       setRegisteringId(selectedEvent._id)
-      const payload = {
-        participationType: participateType,
-        name: formData.name?.trim() || undefined,
-        email: formData.email?.trim() || undefined,
-        phone: formData.phone?.trim() || undefined,
+
+      // Paid attendee (public): collect details first, then simulate payment in a separate step.
+      if (participateType === 'ATTENDEE' && selectedEvent.isPaid) {
+        setPaymentPayload({
+          name: formData.name?.trim(),
+          email: formData.email?.trim(),
+          phone: formData.phone?.trim(),
+        })
+        setShowParticipateModal(false)
+        setShowPaymentModal(true)
+        return
       }
-      await axios.post(`/api/events/${selectedEvent._id}/participate`, payload)
-      alert(
-        participateType === 'ATTENDEE'
-          ? 'Thank you for registering to attend this event!'
-          : 'Thank you for joining as a supporter!'
-      )
-      setShowParticipateModal(false)
-      setSelectedEvent(null)
-      setParticipateType(null)
-      setFormData({ name: '', email: '', phone: '' })
+
+      {
+        const payload = {
+          participationType: participateType,
+          name: formData.name?.trim() || undefined,
+          email: formData.email?.trim() || undefined,
+          phone: formData.phone?.trim() || undefined,
+        }
+        await axios.post(`/api/events/${selectedEvent._id}/participate`, payload)
+        setAttendingEventIds((prev) =>
+          prev.includes(selectedEvent._id.toString()) ? prev : [...prev, selectedEvent._id.toString()]
+        )
+        alert('Registration Confirmed')
+        setShowParticipateModal(false)
+        setSelectedEvent(null)
+        setParticipateType(null)
+        setFormData({ name: '', email: '', phone: '' })
+      }
     } catch (err) {
       alert(err.response?.data?.message || 'Failed to register for event')
     } finally {
+      setRegisteringId(null)
+    }
+  }
+
+  const handleMockPay = async () => {
+    if (!selectedEvent) return
+    try {
+      setPaymentProcessing(true)
+      setPaymentError('')
+      const startPayload = user ? {} : paymentPayload || {}
+      const startRes = await axios.post(`/api/events/${selectedEvent._id}/attend/start`, startPayload)
+
+      const paymentSessionId = startRes.data?.paymentSessionId
+      if (!paymentSessionId) throw new Error('Payment session not created.')
+
+      const participatePayload = {
+        participationType: 'ATTENDEE',
+        paymentSessionId,
+        ...(user ? {} : paymentPayload || {}),
+      }
+
+      await axios.post(`/api/events/${selectedEvent._id}/participate`, participatePayload)
+      setAttendingEventIds((prev) =>
+        prev.includes(selectedEvent._id.toString()) ? prev : [...prev, selectedEvent._id.toString()]
+      )
+
+      alert('Registration Confirmed')
+      setShowPaymentModal(false)
+      setSelectedEvent(null)
+      setParticipateType(null)
+      setPaymentPayload(null)
+      setFormData({ name: '', email: '', phone: '' })
+    } catch (err) {
+      setPaymentError(err.response?.data?.message || 'Payment failed. Please try again.')
+    } finally {
+      setPaymentProcessing(false)
       setRegisteringId(null)
     }
   }
@@ -90,9 +170,23 @@ const PublicEvents = () => {
     }
 
     // ATTENDEE flow stays as participation (public allowed)
-    if (user && type === 'ATTENDEE') {
-      handleParticipateDirect(event, type)
-    } else {
+    if (type === 'ATTENDEE') {
+      if (isAlreadyAttending(event)) return
+
+      if (user && event.isPaid) {
+        setSelectedEvent(event)
+        setParticipateType('ATTENDEE')
+        setPaymentPayload(null)
+        setPaymentError('')
+        setShowPaymentModal(true)
+        return
+      }
+
+      if (user && !event.isPaid) {
+        handleParticipateDirect(event, type)
+        return
+      }
+
       openParticipateModal(event, type)
     }
   }
@@ -109,6 +203,11 @@ const PublicEvents = () => {
           ? 'Thank you for registering to attend this event!'
           : 'Thank you for joining as a supporter!'
       )
+      if (type === 'ATTENDEE') {
+        setAttendingEventIds((prev) =>
+          prev.includes(event._id.toString()) ? prev : [...prev, event._id.toString()]
+        )
+      }
     } catch (err) {
       alert(err.response?.data?.message || 'Failed to register for event')
     } finally {
@@ -141,12 +240,27 @@ const PublicEvents = () => {
               <div className="events-grid">
                 {events.map((event) => (
                   <div key={event._id} className="event-card">
+                    <img
+                      className="event-card-image"
+                      src={event.imageUrl || fallbackImage}
+                      alt={event.title}
+                      loading="lazy"
+                      onError={(e) => {
+                        e.currentTarget.onerror = null
+                        e.currentTarget.src = fallbackImage
+                      }}
+                    />
                     <h2>{event.title}</h2>
                     <p className="event-meta">
                       <span>{new Date(event.date).toLocaleDateString()}</span>
                       <span>•</span>
                       <span>{event.location}</span>
                     </p>
+                    {allowsType(event, 'ATTENDEE') && (
+                      <div className="event-price">
+                        {event.isPaid ? `Paid Event: NPR ${event.price || 0}` : 'Free Event'}
+                      </div>
+                    )}
                     <p className="event-description">{event.description}</p>
 
                     <div className="participation-section">
@@ -170,12 +284,23 @@ const PublicEvents = () => {
                           <button
                             className="btn btn-primary btn-sm"
                             onClick={() => handleAttendOrDonorClick(event, 'ATTENDEE')}
-                            disabled={registeringId === event._id}
+                            disabled={registeringId === event._id || isAlreadyAttending(event)}
                           >
-                            {registeringId === event._id ? 'Registering...' : 'Attend Event'}
+                            {isAlreadyAttending(event)
+                              ? 'Registered'
+                              : registeringId === event._id
+                              ? 'Processing...'
+                              : event.isPaid
+                              ? 'Pay & Attend'
+                              : 'Attend Event'}
                           </button>
                         )}
                       </div>
+                    </div>
+                    <div className="event-details-row">
+                      <Link to={`/events/public/${event._id}`} className="event-details-link">
+                        View Details
+                      </Link>
                     </div>
                   </div>
                 ))}
@@ -218,8 +343,8 @@ const PublicEvents = () => {
         >
           <div className="modal-content participate-modal" onClick={(e) => e.stopPropagation()}>
             <h3>
-              {participateType === 'ATTENDEE' ? 'Attend Event' : 'Join as Supporter'} —{' '}
-              {selectedEvent.title}
+              {selectedEvent?.isPaid ? 'Pay & Attend' : 'Attend Event'} —{' '}
+              {selectedEvent?.title}
             </h3>
             <p className="modal-subtitle">
               Please enter your details to register for this event.
@@ -256,7 +381,11 @@ const PublicEvents = () => {
               </div>
               <div className="modal-actions">
                 <button type="submit" className="btn btn-primary" disabled={registeringId}>
-                  {registeringId ? 'Registering...' : 'Register'}
+                  {registeringId
+                    ? 'Processing...'
+                    : selectedEvent?.isPaid
+                    ? 'Pay & Attend'
+                    : 'Register'}
                 </button>
                 <button
                   type="button"
@@ -270,6 +399,77 @@ const PublicEvents = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Payment Modal (mock payment simulation) */}
+      {showPaymentModal && selectedEvent && selectedEvent.isPaid && (
+        <div
+          className="modal-overlay"
+          onClick={() => {
+            if (!paymentProcessing) {
+              setShowPaymentModal(false)
+              setSelectedEvent(null)
+              setParticipateType(null)
+              setPaymentPayload(null)
+              setPaymentError('')
+            }
+          }}
+        >
+          <div className="modal-content participate-modal" onClick={(e) => e.stopPropagation()}>
+            <h3>Pay & Attend — {selectedEvent.title}</h3>
+            <p className="modal-subtitle">
+              Paid Event: NPR {selectedEvent.price || 0}. This is a simulated payment flow.
+            </p>
+
+            {paymentError && (
+              <div className="alert-error" style={{ marginBottom: 12 }}>
+                {paymentError}
+              </div>
+            )}
+
+            <div style={{ marginBottom: 16 }}>
+              <div className="form-group" style={{ marginBottom: 14 }}>
+                <label>Card Number (dummy)</label>
+                <input type="text" placeholder="4242 4242 4242 4242" disabled={paymentProcessing} />
+              </div>
+              <div className="form-row" style={{ display: 'flex', gap: 12 }}>
+                <div className="form-group" style={{ flex: 1, marginBottom: 14 }}>
+                  <label>Expiry</label>
+                  <input type="text" placeholder="MM/YY" disabled={paymentProcessing} />
+                </div>
+                <div className="form-group" style={{ flex: 1, marginBottom: 14 }}>
+                  <label>CVC</label>
+                  <input type="password" placeholder="123" disabled={paymentProcessing} />
+                </div>
+              </div>
+            </div>
+
+            <div className="modal-actions">
+              <button
+                type="button"
+                className="btn btn-primary"
+                disabled={paymentProcessing}
+                onClick={handleMockPay}
+              >
+                {paymentProcessing ? 'Processing...' : 'Pay'}
+              </button>
+              <button
+                type="button"
+                className="btn btn-outline"
+                disabled={paymentProcessing}
+                onClick={() => {
+                  setShowPaymentModal(false)
+                  setSelectedEvent(null)
+                  setParticipateType(null)
+                  setPaymentPayload(null)
+                  setPaymentError('')
+                }}
+              >
+                Cancel
+              </button>
+            </div>
           </div>
         </div>
       )}

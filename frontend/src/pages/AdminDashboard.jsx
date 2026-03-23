@@ -67,7 +67,7 @@ const AdminDashboard = () => {
         {/* Metrics Cards */}
         <div className="metrics-grid">
           <div className="metric-card">
-            <div className="metric-icon">👥</div>
+            <div className="metric-icon" aria-hidden="true"></div>
             <div className="metric-content">
               <h3>Total Users</h3>
               <p className="metric-value">{metrics?.users?.total || 0}</p>
@@ -76,7 +76,7 @@ const AdminDashboard = () => {
           </div>
 
           <div className="metric-card">
-            <div className="metric-icon">📅</div>
+            <div className="metric-icon" aria-hidden="true"></div>
             <div className="metric-content">
               <h3>Pending Events</h3>
               <p className="metric-value">{metrics?.events?.pending || 0}</p>
@@ -85,7 +85,7 @@ const AdminDashboard = () => {
           </div>
 
           <div className="metric-card">
-            <div className="metric-icon">💰</div>
+            <div className="metric-icon" aria-hidden="true"></div>
             <div className="metric-content">
               <h3>Total Donations</h3>
               <p className="metric-value">
@@ -99,7 +99,7 @@ const AdminDashboard = () => {
           </div>
 
           <div className="metric-card">
-            <div className="metric-icon">🤝</div>
+            <div className="metric-icon" aria-hidden="true"></div>
             <div className="metric-content">
               <h3>Active Volunteers</h3>
               <p className="metric-value">{metrics?.volunteers?.active || 0}</p>
@@ -144,7 +144,7 @@ const AdminDashboard = () => {
               {recent?.events?.length > 0 ? (
                 recent.events.map((event) => (
                   <div key={event._id} className="activity-item">
-                    <div className="activity-icon">📅</div>
+                    <div className="activity-icon" aria-hidden="true"></div>
                     <div className="activity-content">
                       <h4>{event.title}</h4>
                       <p>
@@ -176,9 +176,7 @@ const AdminDashboard = () => {
               {recent?.donations?.length > 0 ? (
                 recent.donations.map((donation) => (
                   <div key={donation._id} className="activity-item">
-                    <div className="activity-icon">
-                      {donation.type === 'monetary' ? '💰' : '📦'}
-                    </div>
+                    <div className="activity-icon" aria-hidden="true"></div>
                     <div className="activity-content">
                       <h4>
                         {donation.type === 'monetary'
@@ -209,22 +207,22 @@ const AdminDashboard = () => {
           <h2>Quick Actions</h2>
           <div className="actions-grid">
             <Link to="/admin/users" className="action-card">
-              <div className="action-icon">👥</div>
+              <div className="action-icon" aria-hidden="true"></div>
               <h3>Manage Users</h3>
               <p>View and manage all user accounts</p>
             </Link>
             <Link to="/events" className="action-card">
-              <div className="action-icon">📅</div>
+              <div className="action-icon" aria-hidden="true"></div>
               <h3>Manage Events</h3>
               <p>Approve requests and create events</p>
             </Link>
             <Link to="/donations" className="action-card">
-              <div className="action-icon">💰</div>
+              <div className="action-icon" aria-hidden="true"></div>
               <h3>View Donations</h3>
               <p>Monitor all donations</p>
             </Link>
             <Link to="/volunteers" className="action-card">
-              <div className="action-icon">🤝</div>
+              <div className="action-icon" aria-hidden="true"></div>
               <h3>Volunteer Oversight</h3>
               <p>Track volunteer participation</p>
             </Link>

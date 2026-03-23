@@ -57,15 +57,23 @@
 }
 
 .metric-icon {
-  font-size: 48px;
   width: 80px;
   height: 80px;
   display: flex;
   align-items: center;
   justify-content: center;
   background: linear-gradient(135deg, rgba(25, 118, 210, 0.1), rgba(25, 118, 210, 0.05));
-  border-radius: 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(25, 118, 210, 0.25);
   flex-shrink: 0;
+}
+
+.metric-icon::after {
+  content: '';
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  background: var(--primary-color);
 }
 
 .metric-content h3 {
@@ -189,8 +197,23 @@
 }
 
 .activity-icon {
-  font-size: 24px;
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  background: rgba(25, 118, 210, 0.12);
+  border: 1px solid rgba(25, 118, 210, 0.25);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
+}
+
+.activity-icon::after {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--primary-color);
 }
 
 .activity-content h4 {
@@ -288,8 +311,23 @@
 }
 
 .action-icon {
-  font-size: 48px;
+  width: 46px;
+  height: 46px;
+  border-radius: 999px;
+  background: rgba(25, 118, 210, 0.12);
+  border: 1px solid rgba(25, 118, 210, 0.25);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   margin-bottom: 16px;
+}
+
+.action-icon::after {
+  content: '';
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: var(--primary-color);
 }
 
 .action-card h3 {

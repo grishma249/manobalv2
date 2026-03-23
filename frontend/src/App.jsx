@@ -19,6 +19,7 @@ import Forbidden from './pages/Forbidden'
 import AdminDashboard from './pages/AdminDashboard'
 import AdminUserManagement from './pages/AdminUserManagement'
 import AdminEvents from './pages/AdminEvents'
+import PublicEventDetail from './pages/PublicEventDetail'
 import './App.css'
 
 function App() {
@@ -31,6 +32,7 @@ function App() {
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/events/public" element={<PublicEvents />} />
+          <Route path="/events/public/:id" element={<PublicEventDetail />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/403" element={<Forbidden />} />

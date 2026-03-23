@@ -13,6 +13,7 @@ const AdminEvents = () => {
   const [selectedEvent, setSelectedEvent] = useState(null)
   const [showAssignModal, setShowAssignModal] = useState(false)
   const [volunteers, setVolunteers] = useState([])
+  const [eventImageFile, setEventImageFile] = useState(null)
   const [createFormData, setCreateFormData] = useState({
     title: '',
     description: '',
@@ -23,6 +24,8 @@ const AdminEvents = () => {
     numberOfStudents: '',
     notes: '',
     allowedParticipationTypes: ['VOLUNTEER'],
+    isPaid: false,
+    price: '',
   })
   const [submitting, setSubmitting] = useState(false)
   const [createError, setCreateError] = useState('')
@@ -134,15 +137,35 @@ const AdminEvents = () => {
       setSubmitting(true)
       setCreateError('')
 
-      const eventData = {
-        ...createFormData,
-        numberOfStudents: createFormData.numberOfStudents
-          ? parseInt(createFormData.numberOfStudents)
-          : undefined,
+      const formPayload = new FormData()
+      formPayload.append('title', createFormData.title)
+      formPayload.append('description', createFormData.description)
+      formPayload.append('eventType', createFormData.eventType)
+      formPayload.append('date', createFormData.date)
+      formPayload.append('location', createFormData.location)
+      formPayload.append('targetAudience', createFormData.targetAudience || '')
+      formPayload.append(
+        'numberOfStudents',
+        createFormData.numberOfStudents ? String(parseInt(createFormData.numberOfStudents)) : ''
+      )
+      formPayload.append('notes', createFormData.notes || '')
+
+      formPayload.append(
+        'allowedParticipationTypes',
+        JSON.stringify(createFormData.allowedParticipationTypes || ['VOLUNTEER'])
+      )
+      formPayload.append('isPaid', createFormData.isPaid ? 'true' : 'false')
+      formPayload.append('price', createFormData.price ? String(createFormData.price) : '0')
+
+      if (eventImageFile) {
+        formPayload.append('image', eventImageFile)
       }
 
-      await axios.post('/api/admin/events', eventData)
+      await axios.post('/api/admin/events', formPayload, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      })
       setShowCreateModal(false)
+      setEventImageFile(null)
       setCreateFormData({
         title: '',
         description: '',
@@ -153,6 +176,8 @@ const AdminEvents = () => {
         numberOfStudents: '',
         notes: '',
         allowedParticipationTypes: ['VOLUNTEER'],
+        isPaid: false,
+        price: '',
       })
       fetchEvents()
       alert('Event created successfully! It is now visible to volunteers.')
@@ -408,6 +433,56 @@ const AdminEvents = () => {
                     required
                   />
                 </div>
+
+                <div className="form-group">
+                  <label htmlFor="eventImage">Event Image (JPG/JPEG/PNG, max 2MB)</label>
+                  <input
+                    type="file"
+                    id="eventImage"
+                    accept="image/jpeg,image/png"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0]
+                      setEventImageFile(file || null)
+                    }}
+                  />
+                </div>
+
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Paid for Public Attendees</label>
+                    <label style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                      <input
+                        type="checkbox"
+                        checked={createFormData.isPaid}
+                        onChange={(e) => {
+                          const checked = e.target.checked
+                          setCreateFormData({
+                            ...createFormData,
+                            isPaid: checked,
+                            price: checked ? createFormData.price || '' : '',
+                          })
+                        }}
+                      />
+                      <span>Enable payment (ATTENDEE only)</span>
+                    </label>
+                  </div>
+                  <div className="form-group">
+                    <label htmlFor="price">Price (NPR)</label>
+                    <input
+                      type="number"
+                      id="price"
+                      value={createFormData.price}
+                      min="0"
+                      step="1"
+                      disabled={!createFormData.isPaid}
+                      onChange={(e) =>
+                        setCreateFormData({ ...createFormData, price: e.target.value })
+                      }
+                      placeholder={createFormData.isPaid ? 'e.g., 500' : 'Enable payment to set a price'}
+                    />
+                  </div>
+                </div>
+
                 <div className="form-group">
                   <label>Allowed Participation</label>
                   <div className="participation-options">
@@ -512,7 +587,11 @@ const AdminEvents = () => {
                         targetAudience: '',
                         numberOfStudents: '',
                         notes: '',
+                        allowedParticipationTypes: ['VOLUNTEER'],
+                        isPaid: false,
+                        price: '',
                       })
+                      setEventImageFile(null)
                     }}
                     className="btn btn-outline"
                   >

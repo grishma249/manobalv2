@@ -157,7 +157,7 @@ const Dashboard = () => {
                 <>
                   <div className="stat-cards">
                     <div className="stat-card stat-card-primary">
-                      <div className="stat-icon">💰</div>
+                      <div className="stat-icon" aria-hidden="true"></div>
                       <div className="stat-content">
                         <span className="stat-value">
                           NPR {(donationData.summary?.totalMonetary || 0).toLocaleString()}
@@ -166,28 +166,28 @@ const Dashboard = () => {
                       </div>
                     </div>
                     <div className="stat-card stat-card-accent">
-                      <div className="stat-icon">📦</div>
+                      <div className="stat-icon" aria-hidden="true"></div>
                       <div className="stat-content">
                         <span className="stat-value">{donationData.summary?.totalItems || 0}</span>
                         <span className="stat-label">Items Donated</span>
                       </div>
                     </div>
                     <div className="stat-card">
-                      <div className="stat-icon">📝</div>
+                      <div className="stat-icon" aria-hidden="true"></div>
                       <div className="stat-content">
                         <span className="stat-value">{donationData.summary?.monetaryCount || 0}</span>
                         <span className="stat-label">Monetary Donations</span>
                       </div>
                     </div>
                     <div className="stat-card">
-                      <div className="stat-icon">🎁</div>
+                      <div className="stat-icon" aria-hidden="true"></div>
                       <div className="stat-content">
                         <span className="stat-value">{donationData.summary?.physicalCount || 0}</span>
                         <span className="stat-label">Physical Donations</span>
                       </div>
                     </div>
                     <div className="stat-card">
-                      <div className="stat-icon">🤝</div>
+                      <div className="stat-icon" aria-hidden="true"></div>
                       <div className="stat-content">
                         <span className="stat-value">
                           {eventParticipationData.summary?.donor || 0}
@@ -271,10 +271,10 @@ const Dashboard = () => {
                     <h3>Quick Actions</h3>
                     <div className="quick-actions">
                       <a href="/donations" className="action-link">
-                        💰 Make a Donation
+                        Make a Donation
                       </a>
                       <a href="/events/public" className="action-link">
-                        🎫 Browse Events to Support
+                        Browse Events to Support
                       </a>
                     </div>
                   </div>
@@ -295,21 +295,21 @@ const Dashboard = () => {
                 <>
                   <div className="stat-cards">
                     <div className="stat-card stat-card-primary">
-                      <div className="stat-icon">✅</div>
+                      <div className="stat-icon" aria-hidden="true"></div>
                       <div className="stat-content">
                         <span className="stat-value">{volunteerData.summary?.attended || 0}</span>
                         <span className="stat-label">Attended</span>
                       </div>
                     </div>
                     <div className="stat-card stat-card-accent">
-                      <div className="stat-icon">📅</div>
+                      <div className="stat-icon" aria-hidden="true"></div>
                       <div className="stat-content">
                         <span className="stat-value">{volunteerData.summary?.total || 0}</span>
                         <span className="stat-label">Total Events</span>
                       </div>
                     </div>
                     <div className="stat-card">
-                      <div className="stat-icon">✓</div>
+                      <div className="stat-icon" aria-hidden="true"></div>
                       <div className="stat-content">
                         <span className="stat-value">
                           {(volunteerData.summary?.registered || 0) +
@@ -319,14 +319,14 @@ const Dashboard = () => {
                       </div>
                     </div>
                     <div className="stat-card">
-                      <div className="stat-icon">⏳</div>
+                      <div className="stat-icon" aria-hidden="true"></div>
                       <div className="stat-content">
                         <span className="stat-value">{volunteerData.summary?.pending || 0}</span>
                         <span className="stat-label">Pending</span>
                       </div>
                     </div>
                     <div className="stat-card">
-                      <div className="stat-icon">🎫</div>
+                      <div className="stat-icon" aria-hidden="true"></div>
                       <div className="stat-content">
                         <span className="stat-value">
                           {eventParticipationData.summary?.attendee || 0}
@@ -407,9 +407,9 @@ const Dashboard = () => {
                   <div className="dashboard-card quick-actions-card">
                     <h3>Quick Actions</h3>
                     <div className="quick-actions">
-                      <a href="/events" className="action-link">📅 Browse Available Events</a>
-                      <a href="/events/public" className="action-link">🎫 Browse Public Events</a>
-                      <a href="/my-events" className="action-link">🗂️ View My Registered Events</a>
+                      <a href="/events" className="action-link">Browse Available Events</a>
+                      <a href="/events/public" className="action-link">Browse Public Events</a>
+                      <a href="/my-events" className="action-link">View My Registered Events</a>
                     </div>
                   </div>
                 </>
@@ -429,28 +429,28 @@ const Dashboard = () => {
                 <>
                   <div className="stat-cards">
                     <div className="stat-card stat-card-primary">
-                      <div className="stat-icon">📋</div>
+                      <div className="stat-icon" aria-hidden="true"></div>
                       <div className="stat-content">
                         <span className="stat-value">{schoolData.summary?.total || 0}</span>
                         <span className="stat-label">Total Requests</span>
                       </div>
                     </div>
                     <div className="stat-card stat-card-accent">
-                      <div className="stat-icon">✅</div>
+                      <div className="stat-icon" aria-hidden="true"></div>
                       <div className="stat-content">
                         <span className="stat-value">{schoolData.summary?.completed || 0}</span>
                         <span className="stat-label">Completed</span>
                       </div>
                     </div>
                     <div className="stat-card">
-                      <div className="stat-icon">✓</div>
+                      <div className="stat-icon" aria-hidden="true"></div>
                       <div className="stat-content">
                         <span className="stat-value">{schoolData.summary?.approved || 0}</span>
                         <span className="stat-label">Approved</span>
                       </div>
                     </div>
                     <div className="stat-card">
-                      <div className="stat-icon">⏳</div>
+                      <div className="stat-icon" aria-hidden="true"></div>
                       <div className="stat-content">
                         <span className="stat-value">{schoolData.summary?.pending || 0}</span>
                         <span className="stat-label">Pending</span>
@@ -496,8 +496,8 @@ const Dashboard = () => {
                   <div className="dashboard-card quick-actions-card">
                     <h3>Quick Actions</h3>
                     <div className="quick-actions">
-                      <a href="/school/request-event" className="action-link">📝 Request a New Event</a>
-                      <a href="/events" className="action-link">📅 View My Event Requests</a>
+                      <a href="/school/request-event" className="action-link">Request a New Event</a>
+                      <a href="/events" className="action-link">View My Event Requests</a>
                     </div>
                   </div>
                 </>

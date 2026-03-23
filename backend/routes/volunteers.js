@@ -19,6 +19,7 @@ router.get(
   ],
   async (req, res) => {
     try {
+      const baseUrl = `${req.protocol}://${req.get('host')}`;
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
         return res.status(400).json({ errors: errors.array() });
@@ -58,6 +59,9 @@ router.get(
         );
         eventObj.isRegistered = registeredEventIds.has(event._id.toString());
         eventObj.registrationStatus = participation?.status || null;
+        if (eventObj.imageUrl && eventObj.imageUrl.startsWith('/uploads/')) {
+          eventObj.imageUrl = `${baseUrl}${eventObj.imageUrl}`;
+        }
         return eventObj;
       });
 

@@ -17,13 +17,11 @@ const AppShell = ({ children }) => {
       path: role === 'admin' ? '/admin/dashboard' : '/dashboard',
       label: 'Dashboard',
       roles: ['admin', 'donor', 'volunteer', 'school'],
-      icon: '🏠',
     },
     {
       path: '/admin/users',
       label: 'User Management',
       roles: ['admin'],
-      icon: '👥',
     },
     {
       path:
@@ -34,43 +32,36 @@ const AppShell = ({ children }) => {
           : '/events',
       label: role === 'volunteer' ? 'Event Opportunities' : 'Events',
       roles: ['admin', 'volunteer', 'school', 'donor'],
-      icon: '📅',
     },
     {
       path: '/my-events',
       label: 'My Events',
       roles: ['volunteer'],
-      icon: '🗂️',
     },
     {
       path: '/school/request-event',
       label: 'Request Event',
       roles: ['school'],
-      icon: '📝',
     },
     {
       path: '/donations',
       label: 'Donations',
       roles: ['admin', 'donor'],
-      icon: '💰',
     },
     {
       path: '/volunteers',
       label: 'Volunteers',
       roles: ['admin'],
-      icon: '👥',
     },
     {
       path: '/profile',
       label: 'Profile',
       roles: ['admin', 'donor', 'volunteer', 'school'],
-      icon: '🙍',
     },
     {
       path: '/contact',
       label: 'Help / Contact',
       roles: ['admin', 'donor', 'volunteer', 'school'],
-      icon: '❓',
     },
   ]
 
@@ -92,7 +83,7 @@ const AppShell = ({ children }) => {
                   to={link.path}
                   className={`sidebar-link ${isActive(link.path)}`}
                 >
-                  <span className="sidebar-icon">{link.icon}</span>
+                  <span className="sidebar-icon" aria-hidden="true"></span>
                   <span className="sidebar-label">{link.label}</span>
                 </Link>
               ))}

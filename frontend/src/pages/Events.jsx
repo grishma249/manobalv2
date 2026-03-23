@@ -13,6 +13,7 @@ const Events = () => {
   const [error, setError] = useState('')
   const [pagination, setPagination] = useState({})
   const [registering, setRegistering] = useState(null)
+  const fallbackImage = '/img1.jpeg'
 
   const isVolunteer = user?.role === 'volunteer'
   const isSchool = user?.role === 'school'
@@ -119,6 +120,16 @@ const Events = () => {
                 <div className="events-grid">
                   {events.map((event) => (
                     <div key={event._id} className="event-card">
+                      <img
+                        className="event-card-image"
+                        src={event.imageUrl || fallbackImage}
+                        alt={event.title}
+                        loading="lazy"
+                        onError={(e) => {
+                          e.currentTarget.onerror = null
+                          e.currentTarget.src = fallbackImage
+                        }}
+                      />
                       <div className="event-header">
                         <h3>{event.title}</h3>
                         <span
@@ -161,8 +172,8 @@ const Events = () => {
                           {event.isRegistered ? (
                             <div className="registered-badge">
                               {event.registrationStatus === 'pending'
-                                ? '⏳ Pending (awaiting admin approval)'
-                                : `✓ ${event.registrationStatus.charAt(0).toUpperCase() + event.registrationStatus.slice(1)}`}
+                                ? 'Pending (awaiting admin approval)'
+                                : `${event.registrationStatus.charAt(0).toUpperCase() + event.registrationStatus.slice(1)}`}
                             </div>
                           ) : (
                             <button
@@ -207,7 +218,6 @@ const Events = () => {
               </>
             ) : (
               <div className="empty-state">
-                <div className="empty-icon">📅</div>
                 <h3>No events found</h3>
                 <p>
                   {isVolunteer

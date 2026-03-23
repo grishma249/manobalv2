@@ -69,28 +69,28 @@ const MyEvents = () => {
         {/* Summary Cards */}
         <div className="summary-cards">
           <div className="summary-card">
-            <div className="summary-icon">📅</div>
+            <div className="summary-icon" aria-hidden="true"></div>
             <div className="summary-content">
               <h3>{summary.total || 0}</h3>
               <p>Total Events</p>
             </div>
           </div>
           <div className="summary-card">
-            <div className="summary-icon">✅</div>
+            <div className="summary-icon" aria-hidden="true"></div>
             <div className="summary-content">
               <h3>{summary.attended || 0}</h3>
               <p>Attended</p>
             </div>
           </div>
           <div className="summary-card">
-            <div className="summary-icon">📝</div>
+            <div className="summary-icon" aria-hidden="true"></div>
             <div className="summary-content">
               <h3>{(summary.registered || 0) + (summary.confirmed || 0)}</h3>
               <p>Registered</p>
             </div>
           </div>
           <div className="summary-card">
-            <div className="summary-icon">⏳</div>
+            <div className="summary-icon" aria-hidden="true"></div>
             <div className="summary-content">
               <h3>{summary.pending || 0}</h3>
               <p>Pending</p>
@@ -188,7 +188,6 @@ const MyEvents = () => {
           </>
         ) : (
           <div className="empty-state">
-            <div className="empty-icon">🗂️</div>
             <h3>No events registered</h3>
             <p>You haven't registered for any events yet. Browse available events to get started!</p>
           </div>
