@@ -4,6 +4,7 @@ import axios from 'axios'
 import { useAuth } from '../context/AuthContext'
 import AppShell from '../components/AppShell'
 import Navigation from '../components/Navigation'
+import EventLocationMap from '../components/EventLocationMap'
 import './PublicEventDetail.css'
 
 const PublicEventDetail = () => {
@@ -228,6 +229,15 @@ const PublicEventDetail = () => {
                   {event?.isPaid ? `NPR ${event?.price || 0}` : 'Free Event'}
                 </div>
               )}
+
+              <div className="detail-map-wrap">
+                <EventLocationMap
+                  latitude={event?.latitude}
+                  longitude={event?.longitude}
+                  locationName={event?.location}
+                  height={200}
+                />
+              </div>
 
               <div className="detail-cta">
                 <div className="detail-cta-title">Participate</div>

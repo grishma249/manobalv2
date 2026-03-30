@@ -111,6 +111,10 @@
   line-height: 1.6;
 }
 
+.event-map-inline {
+  margin-top: 12px;
+}
+
 .public-events-note {
   margin-top: 32px;
   font-size: 15px;

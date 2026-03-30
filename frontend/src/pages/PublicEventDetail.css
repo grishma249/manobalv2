@@ -77,6 +77,10 @@
   border-top: 1px solid #eee;
 }
 
+.detail-map-wrap {
+  margin-top: 14px;
+}
+
 .detail-cta-title {
   font-weight: 700;
   color: #222;

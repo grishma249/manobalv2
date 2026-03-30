@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import axios from 'axios'
 import Navigation from '../components/Navigation'
 import AppShell from '../components/AppShell'
+import EventLocationMap from '../components/EventLocationMap'
 import { useAuth } from '../context/AuthContext'
 import { Link, useNavigate } from 'react-router-dom'
 import './PublicEvents.css'
@@ -262,6 +263,13 @@ const PublicEvents = () => {
                       </div>
                     )}
                     <p className="event-description">{event.description}</p>
+                    <EventLocationMap
+                      latitude={event.latitude}
+                      longitude={event.longitude}
+                      locationName={event.location}
+                      height={170}
+                      className="event-map-inline"
+                    />
 
                     <div className="participation-section">
                       <h3>Participate</h3>

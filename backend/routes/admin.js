@@ -357,6 +357,14 @@ router.post(
       .withMessage('Invalid event type'),
     body('date').isISO8601().withMessage('Valid date is required'),
     body('location').trim().notEmpty().withMessage('Location is required'),
+    body('latitude')
+      .optional({ checkFalsy: true })
+      .isFloat({ min: -90, max: 90 })
+      .withMessage('Latitude must be between -90 and 90'),
+    body('longitude')
+      .optional({ checkFalsy: true })
+      .isFloat({ min: -180, max: 180 })
+      .withMessage('Longitude must be between -180 and 180'),
     // When using multipart/form-data, arrays may arrive as strings.
     body('allowedParticipationTypes').optional(),
     body('isPaid').optional(),
@@ -408,6 +416,21 @@ router.post(
         ? parseFloat(req.body.price)
         : 0;
 
+      const parsedLatitude = req.body.latitude !== undefined && req.body.latitude !== ''
+        ? parseFloat(req.body.latitude)
+        : undefined;
+      const parsedLongitude = req.body.longitude !== undefined && req.body.longitude !== ''
+        ? parseFloat(req.body.longitude)
+        : undefined;
+
+      const hasLat = Number.isFinite(parsedLatitude);
+      const hasLng = Number.isFinite(parsedLongitude);
+      if (hasLat !== hasLng) {
+        return res.status(400).json({
+          message: 'Both latitude and longitude are required when setting map location',
+        });
+      }
+
       const eventData = {
         ...req.body,
         allowedParticipationTypes: normalizedAllowedTypes,
@@ -419,6 +442,8 @@ router.post(
           : req.body.imageUrl,
         isPaid: Boolean(isPaid),
         price: Number.isFinite(parsedPrice) ? parsedPrice : 0,
+        latitude: hasLat ? parsedLatitude : undefined,
+        longitude: hasLng ? parsedLongitude : undefined,
         requestedBy: req.user._id, // Admin creates the event
         status: 'approved',
         approvedBy: req.user._id,

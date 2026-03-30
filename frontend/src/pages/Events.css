@@ -121,6 +121,10 @@
   line-height: 1.6;
 }
 
+.event-map-inline {
+  margin-bottom: 16px;
+}
+
 .event-details {
   display: flex;
   flex-direction: column;

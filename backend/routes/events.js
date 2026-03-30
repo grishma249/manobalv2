@@ -24,7 +24,7 @@ router.get('/public', async (req, res) => {
     })
       .sort({ date: 1 })
       .select(
-        'title description eventType date location allowedParticipationTypes imageUrl isPaid price'
+        'title description eventType date location latitude longitude allowedParticipationTypes imageUrl isPaid price'
       )
       .lean();
 
@@ -80,7 +80,7 @@ router.get('/:id', async (req, res) => {
     const { id } = req.params;
     const baseUrl = `${req.protocol}://${req.get('host')}`;
     const event = await Event.findById(id).select(
-      'title description eventType date location allowedParticipationTypes status imageUrl isPaid price'
+      'title description eventType date location latitude longitude allowedParticipationTypes status imageUrl isPaid price'
     );
 
     if (!event || event.status !== 'approved') {

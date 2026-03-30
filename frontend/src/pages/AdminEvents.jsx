@@ -20,6 +20,8 @@ const AdminEvents = () => {
     eventType: 'workshop',
     date: '',
     location: '',
+    latitude: '',
+    longitude: '',
     targetAudience: '',
     numberOfStudents: '',
     notes: '',
@@ -137,12 +139,22 @@ const AdminEvents = () => {
       setSubmitting(true)
       setCreateError('')
 
+      const hasLatitude = String(createFormData.latitude || '').trim() !== ''
+      const hasLongitude = String(createFormData.longitude || '').trim() !== ''
+      if (hasLatitude !== hasLongitude) {
+        setCreateError('Please provide both latitude and longitude for map location.')
+        setSubmitting(false)
+        return
+      }
+
       const formPayload = new FormData()
       formPayload.append('title', createFormData.title)
       formPayload.append('description', createFormData.description)
       formPayload.append('eventType', createFormData.eventType)
       formPayload.append('date', createFormData.date)
       formPayload.append('location', createFormData.location)
+      formPayload.append('latitude', createFormData.latitude || '')
+      formPayload.append('longitude', createFormData.longitude || '')
       formPayload.append('targetAudience', createFormData.targetAudience || '')
       formPayload.append(
         'numberOfStudents',
@@ -172,6 +184,8 @@ const AdminEvents = () => {
         eventType: 'workshop',
         date: '',
         location: '',
+        latitude: '',
+        longitude: '',
         targetAudience: '',
         numberOfStudents: '',
         notes: '',
@@ -433,6 +447,38 @@ const AdminEvents = () => {
                     required
                   />
                 </div>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label htmlFor="latitude">Latitude</label>
+                    <input
+                      type="number"
+                      id="latitude"
+                      value={createFormData.latitude}
+                      step="any"
+                      min="-90"
+                      max="90"
+                      onChange={(e) =>
+                        setCreateFormData({ ...createFormData, latitude: e.target.value })
+                      }
+                      placeholder="e.g., 27.7172"
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label htmlFor="longitude">Longitude</label>
+                    <input
+                      type="number"
+                      id="longitude"
+                      value={createFormData.longitude}
+                      step="any"
+                      min="-180"
+                      max="180"
+                      onChange={(e) =>
+                        setCreateFormData({ ...createFormData, longitude: e.target.value })
+                      }
+                      placeholder="e.g., 85.3240"
+                    />
+                  </div>
+                </div>
 
                 <div className="form-group">
                   <label htmlFor="eventImage">Event Image (JPG/JPEG/PNG, max 2MB)</label>
@@ -584,6 +630,8 @@ const AdminEvents = () => {
                         eventType: 'workshop',
                         date: '',
                         location: '',
+                        latitude: '',
+                        longitude: '',
                         targetAudience: '',
                         numberOfStudents: '',
                         notes: '',

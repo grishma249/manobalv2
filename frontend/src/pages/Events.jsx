@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import AppShell from '../components/AppShell'
+import EventLocationMap from '../components/EventLocationMap'
 import { useAuth } from '../context/AuthContext'
 import axios from 'axios'
 import './Events.css'
@@ -140,6 +141,13 @@ const Events = () => {
                         </span>
                       </div>
                       <p className="event-description">{event.description}</p>
+                      <EventLocationMap
+                        latitude={event.latitude}
+                        longitude={event.longitude}
+                        locationName={event.location}
+                        height={160}
+                        className="event-map-inline"
+                      />
                       <div className="event-details">
                         <div className="detail-item">
                           <strong>Type:</strong> {getEventTypeDisplay(event.eventType)}
