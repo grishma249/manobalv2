@@ -411,11 +411,15 @@ router.post(
     body('name').optional().trim(),
     body('email').optional().isEmail().withMessage('Valid email is required'),
     body('phone').optional().trim(),
+    body('paymentMethod')
+      .optional()
+      .isIn(['ESEWA', 'CARD_MOCK'])
+      .withMessage('paymentMethod must be ESEWA or CARD_MOCK'),
   ],
   async (req, res) => {
     try {
       const { id } = req.params;
-      const { name, email, phone } = req.body;
+      const { name, email, phone, paymentMethod = 'ESEWA' } = req.body;
 
       const event = await Event.findById(id);
       if (!event || event.status !== 'approved') {
@@ -454,12 +458,10 @@ router.post(
         return res.status(400).json({ message: 'Invalid event price' });
       }
 
-      const { gatewayUrl, productCode, secretKey } = getEsewaConfig();
-      const frontendBase = process.env.FRONTEND_URL || 'http://localhost:3000';
       const transactionUuid = `MNB-${Date.now()}-${crypto.randomUUID().slice(0, 8)}`;
       const totalAmount = Number(event.price);
 
-      await EsewaPayment.create({
+      const paymentRecord = await EsewaPayment.create({
         transactionUuid,
         event: event._id,
         user: userId || undefined,
@@ -468,9 +470,24 @@ router.post(
         phone: resolvedPhone,
         participationType: 'ATTENDEE',
         totalAmount,
-        productCode,
+        productCode: paymentMethod === 'CARD_MOCK' ? 'CARDMOCK' : getEsewaConfig().productCode,
         status: 'PENDING',
       });
+
+      if (paymentMethod === 'CARD_MOCK') {
+        // Keep a lightweight card simulation path without leaving the app.
+        paymentRecord.status = 'COMPLETED';
+        await paymentRecord.save();
+        return res.json({
+          paymentRequired: true,
+          paymentMethod: 'CARD_MOCK',
+          paymentSessionId: transactionUuid,
+          message: 'Mock card payment completed',
+        });
+      }
+
+      const { gatewayUrl, productCode, secretKey } = getEsewaConfig();
+      const frontendBase = process.env.FRONTEND_URL || 'http://localhost:3000';
 
       const signature = buildEsewaSignature({
         totalAmount,
@@ -481,6 +498,7 @@ router.post(
 
       res.json({
         paymentRequired: true,
+        paymentMethod: 'ESEWA',
         gatewayUrl,
         paymentSessionId: transactionUuid,
         formData: {

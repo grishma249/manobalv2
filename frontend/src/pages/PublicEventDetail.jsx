@@ -25,6 +25,7 @@ const PublicEventDetail = () => {
   const [paymentProcessing, setPaymentProcessing] = useState(false)
   const [paymentError, setPaymentError] = useState('')
   const [paymentPayload, setPaymentPayload] = useState(null)
+  const [paymentMethod, setPaymentMethod] = useState('ESEWA')
 
   const submitEsewaForm = (gatewayUrl, formData) => {
     const form = document.createElement('form')
@@ -86,17 +87,43 @@ const PublicEventDetail = () => {
     ? attendingEventIds.includes(event._id.toString())
     : false
 
-  const handleEsewaPay = async (payload) => {
+  const handlePay = async (payload) => {
     if (!event) return
     try {
       setPaymentProcessing(true)
       setPaymentError('')
 
-      const startRes = await axios.post(`/api/events/${event._id}/attend/start`, payload || {})
-      const gatewayUrl = startRes.data?.gatewayUrl
-      const formData = startRes.data?.formData
-      if (!gatewayUrl || !formData) throw new Error('Failed to initialize eSewa payment.')
-      submitEsewaForm(gatewayUrl, formData)
+      const startRes = await axios.post(`/api/events/${event._id}/attend/start`, {
+        ...(payload || {}),
+        paymentMethod,
+      })
+
+      if (paymentMethod === 'ESEWA') {
+        const gatewayUrl = startRes.data?.gatewayUrl
+        const formData = startRes.data?.formData
+        if (!gatewayUrl || !formData) throw new Error('Failed to initialize eSewa payment.')
+        submitEsewaForm(gatewayUrl, formData)
+        return
+      }
+
+      const paymentSessionId = startRes.data?.paymentSessionId
+      if (!paymentSessionId) throw new Error('Card payment session could not be created.')
+
+      await axios.post(`/api/events/${event._id}/participate`, {
+        participationType: 'ATTENDEE',
+        paymentSessionId,
+        ...((user ? {} : payload) || {}),
+      })
+
+      setAttendingEventIds((prev) =>
+        prev.includes(event._id.toString()) ? prev : [...prev, event._id.toString()]
+      )
+      alert('Registration Confirmed')
+      setShowPaymentModal(false)
+      setShowModal(false)
+      setFormData({ name: '', email: '', phone: '' })
+      setPaymentPayload(null)
+      setPaymentMethod('ESEWA')
     } catch (err) {
       setPaymentError(err.response?.data?.message || 'Payment failed. Please try again.')
     } finally {
@@ -336,6 +363,7 @@ const PublicEventDetail = () => {
             if (!paymentProcessing) {
               setShowPaymentModal(false)
               setPaymentPayload(null)
+              setPaymentMethod('ESEWA')
               setPaymentError('')
             }
           }}
@@ -343,48 +371,84 @@ const PublicEventDetail = () => {
           <div className="modal-content participate-modal" onClick={(e) => e.stopPropagation()}>
             <h3>Pay & Attend — {event.title}</h3>
             <p className="modal-subtitle">
-              Paid Event: NPR {event.price || 0}. You will be redirected to eSewa.
+              Paid Event: NPR {event.price || 0}
             </p>
 
-            {paymentError && (
-              <div className="alert-error" style={{ marginBottom: 12 }}>
-                {paymentError}
-              </div>
-            )}
+            {paymentError && <div className="alert-error payment-alert">{paymentError}</div>}
 
-            <div style={{ marginBottom: 16 }}>
-              <div className="form-group" style={{ marginBottom: 14 }}>
-                <label>Card Number (dummy)</label>
-                <input type="text" placeholder="4242 4242 4242 4242" disabled={paymentProcessing} />
+            <div className="payment-section">
+              <div className="form-group payment-method-group">
+                <label>Select Method</label>
+                <label className="payment-method-option">
+                  <input
+                    type="radio"
+                    name="paymentMethodEventDetail"
+                    value="ESEWA"
+                    checked={paymentMethod === 'ESEWA'}
+                    onChange={() => setPaymentMethod('ESEWA')}
+                    disabled={paymentProcessing}
+                  />
+                  <span>Pay with eSewa (Recommended)</span>
+                </label>
+                <label className="payment-method-option">
+                  <input
+                    type="radio"
+                    name="paymentMethodEventDetail"
+                    value="CARD_MOCK"
+                    checked={paymentMethod === 'CARD_MOCK'}
+                    onChange={() => setPaymentMethod('CARD_MOCK')}
+                    disabled={paymentProcessing}
+                  />
+                  <span>Pay with Card (Mock)</span>
+                </label>
               </div>
-              <div className="form-row" style={{ display: 'flex', gap: 12 }}>
-                <div className="form-group" style={{ flex: 1, marginBottom: 14 }}>
-                  <label>Expiry</label>
-                  <input type="text" placeholder="MM/YY" disabled={paymentProcessing} />
-                </div>
-                <div className="form-group" style={{ flex: 1, marginBottom: 14 }}>
-                  <label>CVC</label>
-                  <input type="password" placeholder="123" disabled={paymentProcessing} />
-                </div>
-              </div>
+
+              {paymentMethod === 'CARD_MOCK' && (
+                <>
+                  <div className="form-group payment-field-group">
+                    <label>Card Number (dummy)</label>
+                    <input type="text" placeholder="4242 4242 4242 4242" disabled={paymentProcessing} />
+                  </div>
+                  <div className="form-row payment-card-row">
+                    <div className="form-group payment-card-col">
+                      <label>Expiry</label>
+                      <input type="text" placeholder="MM/YY" disabled={paymentProcessing} />
+                    </div>
+                    <div className="form-group payment-card-col">
+                      <label>CVC</label>
+                      <input type="password" placeholder="123" disabled={paymentProcessing} />
+                    </div>
+                  </div>
+                </>
+              )}
+              {paymentMethod === 'ESEWA' && (
+                <p className="modal-subtitle payment-note">
+                  You will be redirected to the official eSewa sandbox gateway to complete payment.
+                </p>
+              )}
             </div>
 
-            <div className="modal-actions">
+            <div className="modal-actions payment-actions">
               <button
                 type="button"
-                className="btn btn-primary"
+                className="btn btn-primary payment-btn-primary"
                 disabled={paymentProcessing}
-                onClick={() => handleEsewaPay(user ? {} : paymentPayload)}
+                onClick={() => handlePay(user ? {} : paymentPayload)}
               >
-                {paymentProcessing ? 'Processing...' : 'Pay'}
+                {paymentProcessing
+                  ? 'Processing...'
+                  : paymentMethod === 'ESEWA'
+                  ? 'Proceed to eSewa'
+                  : 'Confirm Card Payment'}
               </button>
               <button
                 type="button"
-                className="btn btn-outline"
+                className="btn btn-outline payment-btn-secondary"
                 disabled={paymentProcessing}
                 onClick={() => {
                   setShowPaymentModal(false)
                   setPaymentPayload(null)
+                  setPaymentMethod('ESEWA')
                   setPaymentError('')
                 }}
               >
