@@ -24,6 +24,21 @@ const PublicEvents = () => {
   const [paymentError, setPaymentError] = useState('')
   const [paymentPayload, setPaymentPayload] = useState(null) // {name,email,phone} for public flows
 
+  const submitEsewaForm = (gatewayUrl, formData) => {
+    const form = document.createElement('form')
+    form.method = 'POST'
+    form.action = gatewayUrl
+    Object.entries(formData || {}).forEach(([key, value]) => {
+      const input = document.createElement('input')
+      input.type = 'hidden'
+      input.name = key
+      input.value = String(value ?? '')
+      form.appendChild(input)
+    })
+    document.body.appendChild(form)
+    form.submit()
+  }
+
   useEffect(() => {
     const fetchEvents = async () => {
       try {
@@ -131,26 +146,11 @@ const PublicEvents = () => {
       const startPayload = user ? {} : paymentPayload || {}
       const startRes = await axios.post(`/api/events/${selectedEvent._id}/attend/start`, startPayload)
 
-      const paymentSessionId = startRes.data?.paymentSessionId
-      if (!paymentSessionId) throw new Error('Payment session not created.')
+      const gatewayUrl = startRes.data?.gatewayUrl
+      const formData = startRes.data?.formData
+      if (!gatewayUrl || !formData) throw new Error('Failed to initialize eSewa payment.')
 
-      const participatePayload = {
-        participationType: 'ATTENDEE',
-        paymentSessionId,
-        ...(user ? {} : paymentPayload || {}),
-      }
-
-      await axios.post(`/api/events/${selectedEvent._id}/participate`, participatePayload)
-      setAttendingEventIds((prev) =>
-        prev.includes(selectedEvent._id.toString()) ? prev : [...prev, selectedEvent._id.toString()]
-      )
-
-      alert('Registration Confirmed')
-      setShowPaymentModal(false)
-      setSelectedEvent(null)
-      setParticipateType(null)
-      setPaymentPayload(null)
-      setFormData({ name: '', email: '', phone: '' })
+      submitEsewaForm(gatewayUrl, formData)
     } catch (err) {
       setPaymentError(err.response?.data?.message || 'Payment failed. Please try again.')
     } finally {
@@ -411,7 +411,7 @@ const PublicEvents = () => {
         </div>
       )}
 
-      {/* Payment Modal (mock payment simulation) */}
+      {/* Payment Modal (eSewa) */}
       {showPaymentModal && selectedEvent && selectedEvent.isPaid && (
         <div
           className="modal-overlay"
@@ -428,7 +428,7 @@ const PublicEvents = () => {
           <div className="modal-content participate-modal" onClick={(e) => e.stopPropagation()}>
             <h3>Pay & Attend — {selectedEvent.title}</h3>
             <p className="modal-subtitle">
-              Paid Event: NPR {selectedEvent.price || 0}. This is a simulated payment flow.
+              Paid Event: NPR {selectedEvent.price || 0}. You will be redirected to eSewa.
             </p>
 
             {paymentError && (

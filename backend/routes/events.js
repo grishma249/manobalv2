@@ -1,13 +1,29 @@
 const express = require('express');
 const { body, validationResult } = require('express-validator');
+const crypto = require('crypto');
 const Event = require('../models/Event');
 const EventParticipation = require('../models/EventParticipation');
 const { authenticate, optionalAuthenticate } = require('../middleware/auth');
-const MockEventPayment = require('../models/MockEventPayment');
-
-const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+const EsewaPayment = require('../models/EsewaPayment');
+const { sendEventRegistrationEmail } = require('../services/emailService');
 
 const router = express.Router();
+
+const getEsewaConfig = () => ({
+  gatewayUrl:
+    process.env.ESEWA_GATEWAY_URL ||
+    'https://rc-epay.esewa.com.np/api/epay/main/v2/form',
+  statusUrl:
+    process.env.ESEWA_STATUS_URL ||
+    'https://rc-epay.esewa.com.np/api/epay/transaction/status/',
+  productCode: process.env.ESEWA_PRODUCT_CODE || 'EPAYTEST',
+  secretKey: process.env.ESEWA_SECRET_KEY || '8gBm/:&EnhH.1/q',
+});
+
+const buildEsewaSignature = ({ totalAmount, transactionUuid, productCode, secretKey }) => {
+  const signedValue = `total_amount=${totalAmount},transaction_uuid=${transactionUuid},product_code=${productCode}`;
+  return crypto.createHmac('sha256', secretKey).update(signedValue).digest('base64');
+};
 
 // ==================== PUBLIC EVENT LISTING ====================
 // @route   GET /api/events/public
@@ -68,6 +84,163 @@ router.get('/participations/me', authenticate, async (req, res) => {
   } catch (error) {
     console.error('Get my participations error:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// ==================== ESEWA PAYMENT CONFIRM ====================
+// @route   POST /api/events/payments/esewa/confirm
+// @desc    Verify eSewa success payload and finalize attendee registration
+// @access  Public (auth optional, verification is server-side)
+router.post(
+  '/payments/esewa/confirm',
+  [body('data').trim().notEmpty().withMessage('data is required')],
+  async (req, res) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+      }
+
+      let decoded;
+      try {
+        const decodedRaw = Buffer.from(req.body.data, 'base64').toString('utf8');
+        decoded = JSON.parse(decodedRaw);
+      } catch (_e) {
+        return res.status(400).json({ message: 'Invalid eSewa payload' });
+      }
+
+      const transactionUuid = decoded?.transaction_uuid;
+      const totalAmount = Number(decoded?.total_amount);
+      const productCode = decoded?.product_code;
+      const status = decoded?.status;
+      const transactionCode = decoded?.transaction_code;
+
+      if (!transactionUuid || !productCode || !Number.isFinite(totalAmount)) {
+        return res.status(400).json({ message: 'Incomplete eSewa success data' });
+      }
+
+      const paymentAttempt = await EsewaPayment.findOne({ transactionUuid }).populate('event');
+      if (!paymentAttempt) {
+        return res.status(404).json({ message: 'Payment attempt not found' });
+      }
+
+      if (paymentAttempt.status === 'COMPLETED' && paymentAttempt.participation) {
+        const existing = await EventParticipation.findById(paymentAttempt.participation);
+        return res.json({
+          message: 'Registration already confirmed',
+          participation: existing,
+          eventId: paymentAttempt.event?._id,
+        });
+      }
+
+      const { statusUrl, productCode: expectedProductCode } = getEsewaConfig();
+      if (productCode !== expectedProductCode || productCode !== paymentAttempt.productCode) {
+        paymentAttempt.status = 'FAILED';
+        await paymentAttempt.save();
+        return res.status(400).json({ message: 'Invalid product code from payment response' });
+      }
+
+      if (Number(totalAmount) !== Number(paymentAttempt.totalAmount)) {
+        paymentAttempt.status = 'FAILED';
+        await paymentAttempt.save();
+        return res.status(400).json({ message: 'Invalid payment amount from payment response' });
+      }
+
+      if (status !== 'COMPLETE') {
+        paymentAttempt.status = 'FAILED';
+        paymentAttempt.verificationPayload = decoded;
+        await paymentAttempt.save();
+        return res.status(400).json({ message: 'Payment not completed' });
+      }
+
+      // Critical server-side verification from eSewa status API (prevents frontend tampering).
+      const statusQuery = new URLSearchParams({
+        product_code: productCode,
+        total_amount: String(totalAmount),
+        transaction_uuid: transactionUuid,
+      });
+      const verificationRes = await fetch(`${statusUrl}?${statusQuery.toString()}`);
+      const verificationData = await verificationRes.json();
+
+      if (verificationData?.status !== 'COMPLETE') {
+        paymentAttempt.status = 'FAILED';
+        paymentAttempt.verificationPayload = verificationData;
+        await paymentAttempt.save();
+        return res.status(400).json({ message: 'eSewa verification failed' });
+      }
+
+      const eventDoc = paymentAttempt.event || (await Event.findById(paymentAttempt.event));
+      if (!eventDoc) {
+        return res.status(404).json({ message: 'Event not found for this payment' });
+      }
+
+      let participation = null;
+      if (paymentAttempt.user) {
+        participation = await EventParticipation.findOne({
+          event: eventDoc._id,
+          user: paymentAttempt.user,
+          participationType: 'ATTENDEE',
+        });
+      }
+
+      if (!participation) {
+        participation = await EventParticipation.create({
+          event: eventDoc._id,
+          user: paymentAttempt.user || undefined,
+          name: paymentAttempt.name,
+          email: paymentAttempt.email,
+          phone: paymentAttempt.phone,
+          participationType: 'ATTENDEE',
+          status: 'registered',
+          paymentStatus: 'COMPLETED',
+          paymentId: paymentAttempt.transactionUuid,
+        });
+      }
+
+      paymentAttempt.status = 'COMPLETED';
+      paymentAttempt.transactionCode = transactionCode;
+      paymentAttempt.verificationPayload = verificationData;
+      paymentAttempt.participation = participation._id;
+      await paymentAttempt.save();
+
+      void sendEventRegistrationEmail({
+        to: paymentAttempt.email,
+        userName: paymentAttempt.name,
+        eventName: eventDoc.title,
+        eventDate: eventDoc.date,
+        eventLocation: eventDoc.location,
+        participationType: 'ATTENDEE',
+        paymentConfirmed: true,
+        paymentReference: paymentAttempt.transactionUuid,
+      });
+
+      res.json({
+        message: 'Registration confirmed successfully',
+        participation,
+        eventId: eventDoc._id,
+      });
+    } catch (error) {
+      console.error('eSewa confirm error:', error);
+      res.status(500).json({ message: 'Server error', error: error.message });
+    }
+  }
+);
+
+// ==================== ESEWA PAYMENT FAILURE MARK ====================
+// @route   POST /api/events/payments/esewa/failure
+// @desc    Mark pending eSewa payment as failed (best effort)
+// @access  Public
+router.post('/payments/esewa/failure', [body('transaction_uuid').optional().trim()], async (req, res) => {
+  try {
+    const tx = req.body.transaction_uuid;
+    if (!tx) return res.json({ ok: true });
+    await EsewaPayment.updateOne(
+      { transactionUuid: tx, status: 'PENDING' },
+      { $set: { status: 'FAILED' } }
+    );
+    res.json({ ok: true });
+  } catch (error) {
+    res.json({ ok: true });
   }
 });
 
@@ -174,8 +347,8 @@ router.post(
           });
         }
 
-        const payment = await MockEventPayment.findOne({
-          paymentId: paymentSessionId,
+        const payment = await EsewaPayment.findOne({
+          transactionUuid: paymentSessionId,
           event: event._id,
         });
 
@@ -200,6 +373,17 @@ router.post(
 
       await participation.save();
 
+      void sendEventRegistrationEmail({
+        to: email,
+        userName: name || req.user?.name || 'Participant',
+        eventName: event.title,
+        eventDate: event.date,
+        eventLocation: event.location,
+        participationType,
+        paymentConfirmed: participationType === 'ATTENDEE' && Boolean(event.isPaid),
+        paymentReference: paymentSessionId,
+      });
+
       res.status(201).json({
         message: 'Successfully registered for this event',
         participation,
@@ -218,7 +402,7 @@ router.post(
 
 // ==================== PAID ATTENDEE PAYMENT START ====================
 // @route   POST /api/events/:id/attend/start
-// @desc    Start payment for paid attendee events (mock payment + delay)
+// @desc    Start payment for paid attendee events (eSewa ePay V2)
 // @access  Public (auth optional)
 router.post(
   '/:id/attend/start',
@@ -270,48 +454,48 @@ router.post(
         return res.status(400).json({ message: 'Invalid event price' });
       }
 
-      const paymentSessionId = `MOCKTX-${Date.now()}-${Math.round(Math.random() * 1e9)}`;
-      const mockPayment = await MockEventPayment.create({
-        paymentId: paymentSessionId,
+      const { gatewayUrl, productCode, secretKey } = getEsewaConfig();
+      const frontendBase = process.env.FRONTEND_URL || 'http://localhost:3000';
+      const transactionUuid = `MNB-${Date.now()}-${crypto.randomUUID().slice(0, 8)}`;
+      const totalAmount = Number(event.price);
+
+      await EsewaPayment.create({
+        transactionUuid,
         event: event._id,
         user: userId || undefined,
+        name: resolvedName,
+        email: resolvedEmail,
+        phone: resolvedPhone,
+        participationType: 'ATTENDEE',
+        totalAmount,
+        productCode,
         status: 'PENDING',
       });
 
-      const delayMs = (() => {
-        const raw = process.env.MOCK_PAYMENT_DELAY_MS;
-        const parsed = raw ? parseInt(raw, 10) : NaN;
-        if (Number.isFinite(parsed) && parsed >= 0) return parsed;
-        return 1000 + Math.floor(Math.random() * 1000); // 1-2 seconds
-      })();
+      const signature = buildEsewaSignature({
+        totalAmount,
+        transactionUuid,
+        productCode,
+        secretKey,
+      });
 
-      await delay(delayMs);
-
-      const failRate = (() => {
-        const raw = process.env.MOCK_PAYMENT_FAIL_RATE;
-        const parsed = raw ? parseFloat(raw) : NaN;
-        if (Number.isFinite(parsed) && parsed >= 0 && parsed <= 1) return parsed;
-        return 0.15;
-      })();
-
-      const shouldFail = Math.random() < failRate;
-
-      mockPayment.status = shouldFail ? 'FAILED' : 'COMPLETED';
-      await mockPayment.save();
-
-      if (shouldFail) {
-        return res.status(400).json({
-          paymentRequired: true,
-          paymentSessionId: paymentSessionId,
-          message: 'Mock payment failed. Please try again.',
-        });
-      }
-
-      // In mock mode, payment is "completed" before we allow participation creation.
       res.json({
         paymentRequired: true,
-        paymentSessionId: paymentSessionId,
-        delayMs,
+        gatewayUrl,
+        paymentSessionId: transactionUuid,
+        formData: {
+          amount: String(totalAmount),
+          tax_amount: '0',
+          total_amount: String(totalAmount),
+          transaction_uuid: transactionUuid,
+          product_code: productCode,
+          product_service_charge: '0',
+          product_delivery_charge: '0',
+          success_url: `${frontendBase}/events/public/payment-success`,
+          failure_url: `${frontendBase}/events/public/payment-failure`,
+          signed_field_names: 'total_amount,transaction_uuid,product_code',
+          signature,
+        },
       });
     } catch (error) {
       console.error('Start payment error:', error);

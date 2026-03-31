@@ -20,6 +20,8 @@ import AdminDashboard from './pages/AdminDashboard'
 import AdminUserManagement from './pages/AdminUserManagement'
 import AdminEvents from './pages/AdminEvents'
 import PublicEventDetail from './pages/PublicEventDetail'
+import EventPaymentSuccess from './pages/EventPaymentSuccess'
+import EventPaymentFailure from './pages/EventPaymentFailure'
 import './App.css'
 
 function App() {
@@ -33,6 +35,8 @@ function App() {
           <Route path="/contact" element={<Contact />} />
           <Route path="/events/public" element={<PublicEvents />} />
           <Route path="/events/public/:id" element={<PublicEventDetail />} />
+          <Route path="/events/public/payment-success" element={<EventPaymentSuccess />} />
+          <Route path="/events/public/payment-failure" element={<EventPaymentFailure />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/403" element={<Forbidden />} />
