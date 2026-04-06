@@ -467,6 +467,157 @@ router.post(
   }
 );
 
+// @route   PATCH /api/admin/events/:id
+// @desc    Update event information after creation
+// @access  Private (Admin only)
+router.patch(
+  '/events/:id',
+  uploadEventImage.single('image'),
+  [
+    body('title').optional().trim().notEmpty().withMessage('Title cannot be empty'),
+    body('description').optional().trim().notEmpty().withMessage('Description cannot be empty'),
+    body('eventType')
+      .optional()
+      .isIn(['workshop', 'awareness', 'training', 'other'])
+      .withMessage('Invalid event type'),
+    body('date').optional().isISO8601().withMessage('Valid date is required'),
+    body('location').optional().trim().notEmpty().withMessage('Location cannot be empty'),
+    body('latitude')
+      .optional({ checkFalsy: true })
+      .isFloat({ min: -90, max: 90 })
+      .withMessage('Latitude must be between -90 and 90'),
+    body('longitude')
+      .optional({ checkFalsy: true })
+      .isFloat({ min: -180, max: 180 })
+      .withMessage('Longitude must be between -180 and 180'),
+    body('allowedParticipationTypes').optional(),
+    body('isPaid').optional(),
+    body('price').optional(),
+  ],
+  async (req, res) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+      }
+
+      if (req.fileValidationError) {
+        return res.status(400).json({ message: req.fileValidationError });
+      }
+
+      const { id } = req.params;
+      const event = await Event.findById(id);
+      if (!event) {
+        return res.status(404).json({ message: 'Event not found' });
+      }
+
+      const parseAllowedTypes = (input) => {
+        if (Array.isArray(input)) return input;
+        if (typeof input === 'string') {
+          try {
+            const parsed = JSON.parse(input);
+            if (Array.isArray(parsed)) return parsed;
+          } catch (_e) {}
+          return input
+            .split(',')
+            .map((s) => s.trim())
+            .filter(Boolean);
+        }
+        return [];
+      };
+
+      const updates = {};
+
+      const directFields = [
+        'title',
+        'description',
+        'eventType',
+        'date',
+        'location',
+        'targetAudience',
+        'numberOfStudents',
+        'notes',
+      ];
+      directFields.forEach((field) => {
+        if (req.body[field] !== undefined) updates[field] = req.body[field];
+      });
+
+      if (req.body.allowedParticipationTypes !== undefined) {
+        const allowedTypes = parseAllowedTypes(req.body.allowedParticipationTypes);
+        const participationEnum = ['VOLUNTEER', 'DONOR', 'ATTENDEE'];
+        updates.allowedParticipationTypes =
+          allowedTypes.length > 0
+            ? allowedTypes.filter((t) => participationEnum.includes(t))
+            : ['VOLUNTEER'];
+      }
+
+      if (req.body.isPaid !== undefined) {
+        const isPaid =
+          req.body.isPaid === true ||
+          req.body.isPaid === 'true' ||
+          req.body.isPaid === '1';
+        updates.isPaid = Boolean(isPaid);
+        const parsedPrice = isPaid ? parseFloat(req.body.price) : 0;
+        updates.price = Number.isFinite(parsedPrice) ? parsedPrice : 0;
+      } else if (req.body.price !== undefined) {
+        const parsedPrice = parseFloat(req.body.price);
+        updates.price = Number.isFinite(parsedPrice) ? parsedPrice : event.price;
+      }
+
+      const parsedLatitude =
+        req.body.latitude !== undefined && req.body.latitude !== ''
+          ? parseFloat(req.body.latitude)
+          : req.body.latitude === ''
+          ? null
+          : undefined;
+      const parsedLongitude =
+        req.body.longitude !== undefined && req.body.longitude !== ''
+          ? parseFloat(req.body.longitude)
+          : req.body.longitude === ''
+          ? null
+          : undefined;
+
+      const hasLat = Number.isFinite(parsedLatitude);
+      const hasLng = Number.isFinite(parsedLongitude);
+      const clearingCoordinates = parsedLatitude === null && parsedLongitude === null;
+      if (!clearingCoordinates && (hasLat !== hasLng)) {
+        return res.status(400).json({
+          message: 'Both latitude and longitude are required when setting map location',
+        });
+      }
+
+      if (clearingCoordinates) {
+        updates.latitude = undefined;
+        updates.longitude = undefined;
+      } else {
+        if (hasLat) updates.latitude = parsedLatitude;
+        if (hasLng) updates.longitude = parsedLongitude;
+      }
+
+      if (req.file) {
+        const baseUrl = `${req.protocol}://${req.get('host')}`;
+        updates.imageUrl = `${baseUrl}/uploads/events/${req.file.filename}`;
+      }
+
+      Object.assign(event, updates);
+      await event.save();
+
+      const updatedEvent = await Event.findById(id)
+        .populate('requestedBy', 'name email schoolName')
+        .populate('approvedBy', 'name email')
+        .populate('assignedVolunteers', 'name email');
+
+      res.json({
+        message: 'Event updated successfully',
+        event: updatedEvent,
+      });
+    } catch (error) {
+      console.error('Update event info error:', error);
+      res.status(500).json({ message: 'Server error', error: error.message });
+    }
+  }
+);
+
 // @route   GET /api/admin/events/:id/participations
 // @desc    Get all volunteer participations (registrations) for an event
 // @access  Private (Admin only)

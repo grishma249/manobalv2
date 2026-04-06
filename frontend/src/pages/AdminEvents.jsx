@@ -10,10 +10,12 @@ const AdminEvents = () => {
   const [filters, setFilters] = useState({ status: '', page: 1 })
   const [pagination, setPagination] = useState({})
   const [showCreateModal, setShowCreateModal] = useState(false)
+  const [showEditModal, setShowEditModal] = useState(false)
   const [selectedEvent, setSelectedEvent] = useState(null)
   const [showAssignModal, setShowAssignModal] = useState(false)
   const [volunteers, setVolunteers] = useState([])
   const [eventImageFile, setEventImageFile] = useState(null)
+  const [editImageFile, setEditImageFile] = useState(null)
   const [createFormData, setCreateFormData] = useState({
     title: '',
     description: '',
@@ -30,11 +32,28 @@ const AdminEvents = () => {
     price: '',
   })
   const [submitting, setSubmitting] = useState(false)
+  const [updatingEvent, setUpdatingEvent] = useState(false)
   const [createError, setCreateError] = useState('')
+  const [editError, setEditError] = useState('')
   const [showRegistrationsModal, setShowRegistrationsModal] = useState(false)
   const [eventParticipations, setEventParticipations] = useState([])
   const [pendingCount, setPendingCount] = useState(0)
   const [loadingParticipations, setLoadingParticipations] = useState(false)
+  const [editFormData, setEditFormData] = useState({
+    title: '',
+    description: '',
+    eventType: 'workshop',
+    date: '',
+    location: '',
+    latitude: '',
+    longitude: '',
+    targetAudience: '',
+    numberOfStudents: '',
+    notes: '',
+    allowedParticipationTypes: ['VOLUNTEER'],
+    isPaid: false,
+    price: '',
+  })
 
   useEffect(() => {
     fetchEvents()
@@ -133,6 +152,33 @@ const AdminEvents = () => {
     }
   }
 
+  const openEditModal = (event) => {
+    setSelectedEvent(event)
+    setEditError('')
+    setEditImageFile(null)
+    setEditFormData({
+      title: event.title || '',
+      description: event.description || '',
+      eventType: event.eventType || 'workshop',
+      date: event.date ? new Date(event.date).toISOString().slice(0, 16) : '',
+      location: event.location || '',
+      latitude:
+        event.latitude !== undefined && event.latitude !== null ? String(event.latitude) : '',
+      longitude:
+        event.longitude !== undefined && event.longitude !== null ? String(event.longitude) : '',
+      targetAudience: event.targetAudience || '',
+      numberOfStudents:
+        event.numberOfStudents !== undefined && event.numberOfStudents !== null
+          ? String(event.numberOfStudents)
+          : '',
+      notes: event.notes || '',
+      allowedParticipationTypes: event.allowedParticipationTypes || ['VOLUNTEER'],
+      isPaid: Boolean(event.isPaid),
+      price: event.price !== undefined && event.price !== null ? String(event.price) : '',
+    })
+    setShowEditModal(true)
+  }
+
   const handleCreateEvent = async (e) => {
     e.preventDefault()
     try {
@@ -202,6 +248,65 @@ const AdminEvents = () => {
       setCreateError(errorMsg)
     } finally {
       setSubmitting(false)
+    }
+  }
+
+  const handleUpdateEvent = async (e) => {
+    e.preventDefault()
+    if (!selectedEvent?._id) return
+
+    try {
+      setUpdatingEvent(true)
+      setEditError('')
+
+      const hasLatitude = String(editFormData.latitude || '').trim() !== ''
+      const hasLongitude = String(editFormData.longitude || '').trim() !== ''
+      if (hasLatitude !== hasLongitude) {
+        setEditError('Please provide both latitude and longitude for map location.')
+        setUpdatingEvent(false)
+        return
+      }
+
+      const formPayload = new FormData()
+      formPayload.append('title', editFormData.title)
+      formPayload.append('description', editFormData.description)
+      formPayload.append('eventType', editFormData.eventType)
+      formPayload.append('date', editFormData.date)
+      formPayload.append('location', editFormData.location)
+      formPayload.append('latitude', editFormData.latitude || '')
+      formPayload.append('longitude', editFormData.longitude || '')
+      formPayload.append('targetAudience', editFormData.targetAudience || '')
+      formPayload.append(
+        'numberOfStudents',
+        editFormData.numberOfStudents ? String(parseInt(editFormData.numberOfStudents)) : ''
+      )
+      formPayload.append('notes', editFormData.notes || '')
+      formPayload.append(
+        'allowedParticipationTypes',
+        JSON.stringify(editFormData.allowedParticipationTypes || ['VOLUNTEER'])
+      )
+      formPayload.append('isPaid', editFormData.isPaid ? 'true' : 'false')
+      formPayload.append('price', editFormData.price ? String(editFormData.price) : '0')
+
+      if (editImageFile) {
+        formPayload.append('image', editImageFile)
+      }
+
+      await axios.patch(`/api/admin/events/${selectedEvent._id}`, formPayload, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      })
+
+      setShowEditModal(false)
+      setSelectedEvent(null)
+      fetchEvents()
+      alert('Event updated successfully.')
+    } catch (err) {
+      const errorMsg = err.response?.data?.errors
+        ? err.response.data.errors.map((e) => e.msg).join(', ')
+        : err.response?.data?.message || 'Failed to update event'
+      setEditError(errorMsg)
+    } finally {
+      setUpdatingEvent(false)
     }
   }
 
@@ -292,6 +397,12 @@ const AdminEvents = () => {
                       )}
                     </div>
                     <div className="event-actions">
+                      <button
+                        onClick={() => openEditModal(event)}
+                        className="btn btn-outline btn-sm"
+                      >
+                        Edit
+                      </button>
                       {event.status === 'pending' && (
                         <>
                           <button
@@ -642,6 +753,233 @@ const AdminEvents = () => {
                       setEventImageFile(null)
                     }}
                     className="btn btn-outline"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* Edit Event Modal */}
+        {showEditModal && selectedEvent && (
+          <div className="modal-overlay" onClick={() => setShowEditModal(false)}>
+            <div className="modal-content modal-large" onClick={(e) => e.stopPropagation()}>
+              <h2>Edit Event</h2>
+              <p className="modal-subtitle">
+                Update event information. Changes will be reflected across all pages.
+              </p>
+              {editError && <div className="alert alert-error">{editError}</div>}
+              <form onSubmit={handleUpdateEvent}>
+                <div className="form-group">
+                  <label htmlFor="edit-title">Event Title *</label>
+                  <input
+                    type="text"
+                    id="edit-title"
+                    value={editFormData.title}
+                    onChange={(e) => setEditFormData({ ...editFormData, title: e.target.value })}
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label htmlFor="edit-description">Description *</label>
+                  <textarea
+                    id="edit-description"
+                    rows="4"
+                    value={editFormData.description}
+                    onChange={(e) =>
+                      setEditFormData({ ...editFormData, description: e.target.value })
+                    }
+                    required
+                  />
+                </div>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label htmlFor="edit-eventType">Event Type *</label>
+                    <select
+                      id="edit-eventType"
+                      value={editFormData.eventType}
+                      onChange={(e) =>
+                        setEditFormData({ ...editFormData, eventType: e.target.value })
+                      }
+                      required
+                    >
+                      <option value="workshop">Workshop</option>
+                      <option value="awareness">Awareness Program</option>
+                      <option value="training">Training</option>
+                      <option value="other">Other</option>
+                    </select>
+                  </div>
+                  <div className="form-group">
+                    <label htmlFor="edit-date">Event Date *</label>
+                    <input
+                      type="datetime-local"
+                      id="edit-date"
+                      value={editFormData.date}
+                      onChange={(e) => setEditFormData({ ...editFormData, date: e.target.value })}
+                      required
+                    />
+                  </div>
+                </div>
+                <div className="form-group">
+                  <label htmlFor="edit-location">Location *</label>
+                  <input
+                    type="text"
+                    id="edit-location"
+                    value={editFormData.location}
+                    onChange={(e) => setEditFormData({ ...editFormData, location: e.target.value })}
+                    required
+                  />
+                </div>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label htmlFor="edit-latitude">Latitude</label>
+                    <input
+                      type="number"
+                      id="edit-latitude"
+                      value={editFormData.latitude}
+                      step="any"
+                      min="-90"
+                      max="90"
+                      onChange={(e) => setEditFormData({ ...editFormData, latitude: e.target.value })}
+                      placeholder="e.g., 27.7172"
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label htmlFor="edit-longitude">Longitude</label>
+                    <input
+                      type="number"
+                      id="edit-longitude"
+                      value={editFormData.longitude}
+                      step="any"
+                      min="-180"
+                      max="180"
+                      onChange={(e) =>
+                        setEditFormData({ ...editFormData, longitude: e.target.value })
+                      }
+                      placeholder="e.g., 85.3240"
+                    />
+                  </div>
+                </div>
+                <div className="form-group">
+                  <label htmlFor="edit-eventImage">Replace Event Image (optional)</label>
+                  <input
+                    type="file"
+                    id="edit-eventImage"
+                    accept="image/jpeg,image/png"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0]
+                      setEditImageFile(file || null)
+                    }}
+                  />
+                </div>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Paid for Public Attendees</label>
+                    <label style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                      <input
+                        type="checkbox"
+                        checked={editFormData.isPaid}
+                        onChange={(e) => {
+                          const checked = e.target.checked
+                          setEditFormData({
+                            ...editFormData,
+                            isPaid: checked,
+                            price: checked ? editFormData.price || '' : '',
+                          })
+                        }}
+                      />
+                      <span>Enable payment (ATTENDEE only)</span>
+                    </label>
+                  </div>
+                  <div className="form-group">
+                    <label htmlFor="edit-price">Price (NPR)</label>
+                    <input
+                      type="number"
+                      id="edit-price"
+                      value={editFormData.price}
+                      min="0"
+                      step="1"
+                      disabled={!editFormData.isPaid}
+                      onChange={(e) => setEditFormData({ ...editFormData, price: e.target.value })}
+                    />
+                  </div>
+                </div>
+                <div className="form-group">
+                  <label>Allowed Participation</label>
+                  <div className="participation-options">
+                    {['VOLUNTEER', 'DONOR', 'ATTENDEE'].map((type) => (
+                      <label key={type}>
+                        <input
+                          type="checkbox"
+                          checked={editFormData.allowedParticipationTypes.includes(type)}
+                          onChange={(e) => {
+                            const current = editFormData.allowedParticipationTypes || []
+                            const next = e.target.checked
+                              ? Array.from(new Set([...current, type]))
+                              : current.filter((t) => t !== type)
+                            setEditFormData({ ...editFormData, allowedParticipationTypes: next })
+                          }}
+                        />
+                        <span>
+                          {type === 'VOLUNTEER'
+                            ? 'Volunteers'
+                            : type === 'DONOR'
+                            ? 'Donors'
+                            : 'Public Attendees'}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label htmlFor="edit-targetAudience">Target Audience</label>
+                    <input
+                      type="text"
+                      id="edit-targetAudience"
+                      value={editFormData.targetAudience}
+                      onChange={(e) =>
+                        setEditFormData({ ...editFormData, targetAudience: e.target.value })
+                      }
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label htmlFor="edit-numberOfStudents">Number of Students</label>
+                    <input
+                      type="number"
+                      id="edit-numberOfStudents"
+                      value={editFormData.numberOfStudents}
+                      onChange={(e) =>
+                        setEditFormData({ ...editFormData, numberOfStudents: e.target.value })
+                      }
+                      min="0"
+                    />
+                  </div>
+                </div>
+                <div className="form-group">
+                  <label htmlFor="edit-notes">Additional Notes</label>
+                  <textarea
+                    id="edit-notes"
+                    rows="3"
+                    value={editFormData.notes}
+                    onChange={(e) => setEditFormData({ ...editFormData, notes: e.target.value })}
+                  />
+                </div>
+                <div className="modal-actions">
+                  <button type="submit" className="btn btn-primary" disabled={updatingEvent}>
+                    {updatingEvent ? 'Saving...' : 'Save Changes'}
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-outline"
+                    onClick={() => {
+                      setShowEditModal(false)
+                      setSelectedEvent(null)
+                      setEditError('')
+                      setEditImageFile(null)
+                    }}
                   >
                     Cancel
                   </button>
