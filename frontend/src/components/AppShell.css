@@ -44,7 +44,7 @@
 .sidebar-link {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 0;
   padding: 16px 20px;
   border-radius: 14px;
   text-decoration: none;
@@ -71,32 +71,7 @@
 }
 
 .sidebar-icon {
-  width: 30px;
-  height: 30px;
-  display: inline-flex;
-  justify-content: center;
-  align-items: center;
-  border-radius: 999px;
-  background: rgba(25, 118, 210, 0.12);
-  border: 1px solid rgba(25, 118, 210, 0.25);
-  flex-shrink: 0;
-}
-
-.sidebar-icon::after {
-  content: '';
-  width: 8px;
-  height: 8px;
-  border-radius: 999px;
-  background: var(--primary-color);
-}
-
-.sidebar-link.active .sidebar-icon {
-  background: rgba(255, 255, 255, 0.16);
-  border-color: rgba(255, 255, 255, 0.4);
-}
-
-.sidebar-link.active .sidebar-icon::after {
-  background: white;
+  display: none;
 }
 
 .sidebar-label {

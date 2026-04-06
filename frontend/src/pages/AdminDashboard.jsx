@@ -10,6 +10,16 @@ const AdminDashboard = () => {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
+  const userRoleData = [
+    { label: 'Donors', value: metrics?.users?.byRole?.donor || 0 },
+    { label: 'Volunteers', value: metrics?.users?.byRole?.volunteer || 0 },
+    { label: 'Schools', value: metrics?.users?.byRole?.school || 0 },
+    { label: 'Admins', value: metrics?.users?.byRole?.admin || 0 },
+  ]
+  const maxRoleValue = Math.max(...userRoleData.map((d) => d.value), 1)
+  const donationTotal =
+    (metrics?.donations?.monetary?.count || 0) + (metrics?.donations?.physical?.count || 0)
+
   useEffect(() => {
     fetchDashboardData()
   }, [])
@@ -67,7 +77,6 @@ const AdminDashboard = () => {
         {/* Metrics Cards */}
         <div className="metrics-grid">
           <div className="metric-card">
-            <div className="metric-icon" aria-hidden="true"></div>
             <div className="metric-content">
               <h3>Total Users</h3>
               <p className="metric-value">{metrics?.users?.total || 0}</p>
@@ -76,7 +85,6 @@ const AdminDashboard = () => {
           </div>
 
           <div className="metric-card">
-            <div className="metric-icon" aria-hidden="true"></div>
             <div className="metric-content">
               <h3>Pending Events</h3>
               <p className="metric-value">{metrics?.events?.pending || 0}</p>
@@ -85,7 +93,6 @@ const AdminDashboard = () => {
           </div>
 
           <div className="metric-card">
-            <div className="metric-icon" aria-hidden="true"></div>
             <div className="metric-content">
               <h3>Total Donations</h3>
               <p className="metric-value">
@@ -99,11 +106,71 @@ const AdminDashboard = () => {
           </div>
 
           <div className="metric-card">
-            <div className="metric-icon" aria-hidden="true"></div>
             <div className="metric-content">
               <h3>Active Volunteers</h3>
               <p className="metric-value">{metrics?.volunteers?.active || 0}</p>
               <p className="metric-subtitle">{metrics?.volunteers?.total || 0} total</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Data Visualization */}
+        <div className="dashboard-section">
+          <div className="section-header">
+            <h2>Platform Snapshot</h2>
+            <button onClick={fetchDashboardData} className="btn btn-outline btn-sm">
+              Refresh
+            </button>
+          </div>
+          <div className="insights-grid">
+            <div className="insight-card">
+              <h3>User Role Distribution</h3>
+              <div className="role-chart">
+                {userRoleData.map((item) => (
+                  <div className="chart-row" key={item.label}>
+                    <div className="chart-label">{item.label}</div>
+                    <div className="chart-track">
+                      <div
+                        className="chart-fill"
+                        style={{
+                          width: `${Math.max((item.value / maxRoleValue) * 100, item.value ? 8 : 0)}%`,
+                        }}
+                      ></div>
+                    </div>
+                    <div className="chart-value">{item.value}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="insight-card">
+              <h3>Donation Mix</h3>
+              <div className="donation-mix">
+                <div className="donation-pill-row">
+                  <div className="donation-pill">
+                    <span>Monetary</span>
+                    <strong>{metrics?.donations?.monetary?.count || 0}</strong>
+                  </div>
+                  <div className="donation-pill">
+                    <span>Physical</span>
+                    <strong>{metrics?.donations?.physical?.count || 0}</strong>
+                  </div>
+                </div>
+                <div className="mix-track">
+                  <div
+                    className="mix-fill-primary"
+                    style={{
+                      width: `${donationTotal ? ((metrics?.donations?.monetary?.count || 0) / donationTotal) * 100 : 0}%`,
+                    }}
+                  ></div>
+                  <div
+                    className="mix-fill-accent"
+                    style={{
+                      width: `${donationTotal ? ((metrics?.donations?.physical?.count || 0) / donationTotal) * 100 : 0}%`,
+                    }}
+                  ></div>
+                </div>
+                <p className="insight-note">Live split of donation records by type.</p>
+              </div>
             </div>
           </div>
         </div>
@@ -144,7 +211,6 @@ const AdminDashboard = () => {
               {recent?.events?.length > 0 ? (
                 recent.events.map((event) => (
                   <div key={event._id} className="activity-item">
-                    <div className="activity-icon" aria-hidden="true"></div>
                     <div className="activity-content">
                       <h4>{event.title}</h4>
                       <p>
@@ -176,7 +242,6 @@ const AdminDashboard = () => {
               {recent?.donations?.length > 0 ? (
                 recent.donations.map((donation) => (
                   <div key={donation._id} className="activity-item">
-                    <div className="activity-icon" aria-hidden="true"></div>
                     <div className="activity-content">
                       <h4>
                         {donation.type === 'monetary'
@@ -207,22 +272,18 @@ const AdminDashboard = () => {
           <h2>Quick Actions</h2>
           <div className="actions-grid">
             <Link to="/admin/users" className="action-card">
-              <div className="action-icon" aria-hidden="true"></div>
               <h3>Manage Users</h3>
               <p>View and manage all user accounts</p>
             </Link>
             <Link to="/events" className="action-card">
-              <div className="action-icon" aria-hidden="true"></div>
               <h3>Manage Events</h3>
               <p>Approve requests and create events</p>
             </Link>
             <Link to="/donations" className="action-card">
-              <div className="action-icon" aria-hidden="true"></div>
               <h3>View Donations</h3>
               <p>Monitor all donations</p>
             </Link>
             <Link to="/volunteers" className="action-card">
-              <div className="action-icon" aria-hidden="true"></div>
               <h3>Volunteer Oversight</h3>
               <p>Track volunteer participation</p>
             </Link>

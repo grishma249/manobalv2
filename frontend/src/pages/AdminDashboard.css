@@ -45,35 +45,13 @@
   border-radius: 16px;
   padding: 28px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-  display: flex;
-  align-items: center;
-  gap: 20px;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
+  border: 1px solid #edf2f7;
 }
 
 .metric-card:hover {
   transform: translateY(-4px);
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
-}
-
-.metric-icon {
-  width: 80px;
-  height: 80px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, rgba(25, 118, 210, 0.1), rgba(25, 118, 210, 0.05));
-  border-radius: 999px;
-  border: 1px solid rgba(25, 118, 210, 0.25);
-  flex-shrink: 0;
-}
-
-.metric-icon::after {
-  content: '';
-  width: 12px;
-  height: 12px;
-  border-radius: 999px;
-  background: var(--primary-color);
 }
 
 .metric-content h3 {
@@ -83,6 +61,121 @@
   text-transform: uppercase;
   letter-spacing: 0.5px;
   margin-bottom: 8px;
+}
+
+.insights-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr;
+  gap: 20px;
+}
+
+.insight-card {
+  background: #f8fafc;
+  border: 1px solid #e8eef5;
+  border-radius: 14px;
+  padding: 20px;
+}
+
+.insight-card h3 {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1f2937;
+  margin-bottom: 14px;
+}
+
+.role-chart {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.chart-row {
+  display: grid;
+  grid-template-columns: 120px 1fr 36px;
+  gap: 10px;
+  align-items: center;
+}
+
+.chart-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #4b5563;
+}
+
+.chart-track {
+  height: 10px;
+  border-radius: 999px;
+  background: #e5e7eb;
+  overflow: hidden;
+}
+
+.chart-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #1e88e5, #1976d2);
+  transition: width 0.35s ease;
+}
+
+.chart-value {
+  font-size: 13px;
+  font-weight: 700;
+  color: #1f2937;
+  text-align: right;
+}
+
+.donation-mix {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.donation-pill-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.donation-pill {
+  background: white;
+  border: 1px solid #e8eef5;
+  border-radius: 10px;
+  padding: 10px 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.donation-pill span {
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.donation-pill strong {
+  font-size: 16px;
+  color: #1f2937;
+}
+
+.mix-track {
+  display: flex;
+  width: 100%;
+  height: 12px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: #e5e7eb;
+}
+
+.mix-fill-primary {
+  background: #1976d2;
+}
+
+.mix-fill-accent {
+  background: #64b5f6;
+}
+
+.insight-note {
+  margin: 0;
+  font-size: 12px;
+  color: #6b7280;
 }
 
 .metric-value {
@@ -184,8 +277,6 @@
 }
 
 .activity-item {
-  display: flex;
-  gap: 16px;
   padding: 16px;
   background: #f8f9fa;
   border-radius: 12px;
@@ -194,26 +285,6 @@
 
 .activity-item:hover {
   background: #f0f0f0;
-}
-
-.activity-icon {
-  width: 34px;
-  height: 34px;
-  border-radius: 999px;
-  background: rgba(25, 118, 210, 0.12);
-  border: 1px solid rgba(25, 118, 210, 0.25);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.activity-icon::after {
-  content: '';
-  width: 8px;
-  height: 8px;
-  border-radius: 999px;
-  background: var(--primary-color);
 }
 
 .activity-content h4 {
@@ -291,10 +362,8 @@
 }
 
 .action-card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
+  display: block;
+  text-align: left;
   padding: 32px 24px;
   background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
   border-radius: 16px;
@@ -308,26 +377,6 @@
   transform: translateY(-4px);
   box-shadow: 0 8px 30px rgba(25, 118, 210, 0.2);
   border-color: var(--primary-color);
-}
-
-.action-icon {
-  width: 46px;
-  height: 46px;
-  border-radius: 999px;
-  background: rgba(25, 118, 210, 0.12);
-  border: 1px solid rgba(25, 118, 210, 0.25);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 16px;
-}
-
-.action-icon::after {
-  content: '';
-  width: 10px;
-  height: 10px;
-  border-radius: 999px;
-  background: var(--primary-color);
 }
 
 .action-card h3 {
@@ -347,6 +396,10 @@
   .metrics-grid,
   .activities-grid,
   .actions-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .insights-grid {
     grid-template-columns: 1fr;
   }
 
