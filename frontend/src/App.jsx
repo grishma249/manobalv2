@@ -11,6 +11,7 @@ import Contact from './pages/Contact'
 import Events from './pages/Events'
 import Donations from './pages/Donations'
 import Volunteers from './pages/Volunteers'
+import Schools from './pages/Schools'
 import Profile from './pages/Profile'
 import PublicEvents from './pages/PublicEvents'
 import MyEvents from './pages/MyEvents'
@@ -112,6 +113,14 @@ function App() {
             element={
               <ProtectedRoute allowedRoles={['admin']}>
                 <Volunteers />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/schools"
+            element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <Schools />
               </ProtectedRoute>
             }
           />

@@ -935,6 +935,103 @@ router.get(
   }
 );
 
+// ==================== SCHOOL OVERSIGHT ====================
+// @route   GET /api/admin/schools
+// @desc    Get all schools with event request stats
+// @access  Private (Admin only)
+router.get(
+  '/schools',
+  [
+    query('page').optional().isInt({ min: 1 }),
+    query('limit').optional().isInt({ min: 1, max: 100 }),
+  ],
+  async (req, res) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+      }
+
+      const { page = 1, limit = 20 } = req.query;
+      const skip = (page - 1) * limit;
+
+      const schools = await User.find({ role: 'school' })
+        .select('-password')
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(parseInt(limit, 10));
+
+      const schoolsWithStats = await Promise.all(
+        schools.map(async (school) => {
+          const schoolEvents = await Event.find({ requestedBy: school._id }).select('status').lean();
+
+          const total = schoolEvents.length;
+          const approved = schoolEvents.filter((e) => e.status === 'approved').length;
+          const pending = schoolEvents.filter((e) => e.status === 'pending').length;
+
+          return {
+            ...school.toObject(),
+            requests: {
+              total,
+              approved,
+              pending,
+            },
+          };
+        })
+      );
+
+      const total = await User.countDocuments({ role: 'school' });
+
+      res.json({
+        schools: schoolsWithStats,
+        pagination: {
+          page: parseInt(page, 10),
+          limit: parseInt(limit, 10),
+          total,
+          pages: Math.ceil(total / limit),
+        },
+      });
+    } catch (error) {
+      console.error('Get schools error:', error);
+      res.status(500).json({ message: 'Server error', error: error.message });
+    }
+  }
+);
+
+// @route   GET /api/admin/schools/:id/events
+// @desc    Get detailed school event requests
+// @access  Private (Admin only)
+router.get('/schools/:id/events', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const school = await User.findById(id).select('-password');
+
+    if (!school || school.role !== 'school') {
+      return res.status(404).json({ message: 'School not found' });
+    }
+
+    const events = await Event.find({ requestedBy: id })
+      .select('title date location status eventType createdAt')
+      .sort({ createdAt: -1 });
+
+    res.json({
+      school,
+      events,
+      summary: {
+        total: events.length,
+        approved: events.filter((e) => e.status === 'approved').length,
+        pending: events.filter((e) => e.status === 'pending').length,
+        rejected: events.filter((e) => e.status === 'rejected').length,
+        completed: events.filter((e) => e.status === 'completed').length,
+      },
+    });
+  } catch (error) {
+    console.error('Get school events error:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
 // @route   GET /api/admin/volunteers/:id/participation
 // @desc    Get detailed participation for a volunteer
 // @access  Private (Admin only)

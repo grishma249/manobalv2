@@ -54,6 +54,11 @@ const AppShell = ({ children }) => {
       roles: ['admin'],
     },
     {
+      path: '/admin/schools',
+      label: 'Schools',
+      roles: ['admin'],
+    },
+    {
       path: '/profile',
       label: 'Profile',
       roles: ['admin', 'donor', 'volunteer', 'school'],

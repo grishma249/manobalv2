@@ -287,6 +287,10 @@ const AdminDashboard = () => {
               <h3>Volunteer Oversight</h3>
               <p>Track volunteer participation</p>
             </Link>
+            <Link to="/admin/schools" className="action-card">
+              <h3>School Oversight</h3>
+              <p>Monitor school requests and activity</p>
+            </Link>
           </div>
         </div>
       </div>
