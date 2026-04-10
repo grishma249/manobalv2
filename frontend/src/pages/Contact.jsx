@@ -1,7 +1,8 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import Navigation from '../components/Navigation'
 import AppShell from '../components/AppShell'
 import { useAuth } from '../context/AuthContext'
+import axios from 'axios'
 import './Contact.css'
 
 const Contact = () => {
@@ -13,6 +14,13 @@ const Contact = () => {
     message: '',
   })
   const [submitted, setSubmitted] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState('')
+  const [messages, setMessages] = useState([])
+  const [loadingMessages, setLoadingMessages] = useState(false)
+  const [inboxError, setInboxError] = useState('')
+  const [selectedMessage, setSelectedMessage] = useState(null)
+  const [statusFilter, setStatusFilter] = useState('all')
 
   const handleChange = (e) => {
     setFormData({
@@ -21,12 +29,167 @@ const Contact = () => {
     })
   }
 
-  const handleSubmit = (e) => {
+  const fetchAdminMessages = async (status = statusFilter) => {
+    try {
+      setLoadingMessages(true)
+      const params = new URLSearchParams()
+      if (status && status !== 'all') params.append('status', status)
+      params.append('limit', '100')
+      const response = await axios.get(`/api/contact/admin/messages?${params.toString()}`)
+      setMessages(response.data.messages || [])
+      setInboxError('')
+    } catch (err) {
+      setInboxError(err.response?.data?.message || 'Failed to load contact messages')
+    } finally {
+      setLoadingMessages(false)
+    }
+  }
+
+  useEffect(() => {
+    if (user?.role === 'admin') {
+      fetchAdminMessages()
+    }
+  }, [user])
+
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    // In a real app, this would send to backend
-    console.log('Contact form submitted:', formData)
-    setSubmitted(true)
-    setTimeout(() => setSubmitted(false), 3000)
+    try {
+      setIsSubmitting(true)
+      setSubmitError('')
+      await axios.post('/api/contact', formData)
+      setSubmitted(true)
+      setFormData({
+        name: '',
+        email: '',
+        subject: '',
+        message: '',
+      })
+      setTimeout(() => setSubmitted(false), 3000)
+    } catch (err) {
+      const validationErrors = err.response?.data?.errors
+      if (validationErrors?.length) {
+        setSubmitError(validationErrors[0].msg)
+      } else {
+        setSubmitError(err.response?.data?.message || 'Failed to send message')
+      }
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const updateMessageStatus = async (messageId, status) => {
+    try {
+      await axios.patch(`/api/contact/admin/messages/${messageId}/status`, { status })
+      setMessages((prev) =>
+        prev.map((m) => (m._id === messageId ? { ...m, status } : m))
+      )
+      if (selectedMessage?._id === messageId) {
+        setSelectedMessage((prev) => ({ ...prev, status }))
+      }
+    } catch (err) {
+      setInboxError(err.response?.data?.message || 'Failed to update message status')
+    }
+  }
+
+  const openMessage = (message) => {
+    setSelectedMessage(message)
+    if (message.status === 'unread') {
+      void updateMessageStatus(message._id, 'read')
+    }
+  }
+
+  if (user?.role === 'admin') {
+    return (
+      <div className="contact-page">
+        <AppShell>
+          <div className="contact-hero admin-inbox-hero">
+            <div className="container">
+              <h1>Help & Contact Inbox</h1>
+              <p className="hero-subtitle">Review and manage public inquiries</p>
+            </div>
+          </div>
+          <div className="contact-content">
+            <div className="container">
+              <div className="inbox-controls">
+                <label htmlFor="statusFilter">Filter by status</label>
+                <select
+                  id="statusFilter"
+                  value={statusFilter}
+                  onChange={(e) => {
+                    const next = e.target.value
+                    setStatusFilter(next)
+                    fetchAdminMessages(next)
+                  }}
+                >
+                  <option value="all">All</option>
+                  <option value="unread">Unread</option>
+                  <option value="read">Read</option>
+                  <option value="resolved">Resolved</option>
+                </select>
+              </div>
+              {inboxError && <div className="alert alert-error">{inboxError}</div>}
+              {loadingMessages ? (
+                <div className="loading-container">
+                  <div className="spinner"></div>
+                  <p>Loading inbox...</p>
+                </div>
+              ) : (
+                <div className="admin-inbox-layout">
+                  <div className="messages-panel">
+                    {messages.length === 0 ? (
+                      <div className="empty-state">No contact messages yet.</div>
+                    ) : (
+                      messages.map((message) => (
+                        <button
+                          key={message._id}
+                          className={`message-row ${selectedMessage?._id === message._id ? 'active' : ''}`}
+                          onClick={() => openMessage(message)}
+                        >
+                          <div className="message-row-head">
+                            <strong>{message.subject}</strong>
+                            <span className={`status-badge status-${message.status}`}>{message.status}</span>
+                          </div>
+                          <p>{message.name} • {message.email}</p>
+                          <small>{new Date(message.createdAt).toLocaleString()}</small>
+                        </button>
+                      ))
+                    )}
+                  </div>
+                  <div className="message-detail">
+                    {selectedMessage ? (
+                      <>
+                        <h3>{selectedMessage.subject}</h3>
+                        <p className="message-meta">
+                          From {selectedMessage.name} ({selectedMessage.email})
+                        </p>
+                        <p className="message-date">{new Date(selectedMessage.createdAt).toLocaleString()}</p>
+                        <div className="message-body">{selectedMessage.message}</div>
+                        <div className="message-actions">
+                          <button
+                            className="btn btn-outline"
+                            onClick={() => updateMessageStatus(selectedMessage._id, 'read')}
+                          >
+                            Mark Read
+                          </button>
+                          <button
+                            className="btn btn-primary"
+                            onClick={() => updateMessageStatus(selectedMessage._id, 'resolved')}
+                          >
+                            Mark Resolved
+                          </button>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="empty-state">Select a message to read details.</div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </AppShell>
+      </div>
+    )
   }
 
   const content = (
@@ -89,6 +252,7 @@ const Contact = () => {
                 </div>
               ) : (
                 <form onSubmit={handleSubmit} className="contact-form">
+                  {submitError && <div className="alert alert-error">{submitError}</div>}
                   <div className="form-group">
                     <label htmlFor="name">Name</label>
                     <input
@@ -133,8 +297,8 @@ const Contact = () => {
                       required
                     ></textarea>
                   </div>
-                  <button type="submit" className="btn btn-primary btn-full">
-                    Send Message
+                  <button type="submit" className="btn btn-primary btn-full" disabled={isSubmitting}>
+                    {isSubmitting ? 'Sending...' : 'Send Message'}
                   </button>
                 </form>
               )}

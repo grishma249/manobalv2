@@ -87,6 +87,125 @@
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
 }
 
+.admin-inbox-hero {
+  padding: 90px 0 60px;
+}
+
+.inbox-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.inbox-controls label {
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.inbox-controls select {
+  max-width: 220px;
+}
+
+.admin-inbox-layout {
+  display: grid;
+  grid-template-columns: 1fr 1.25fr;
+  gap: 20px;
+}
+
+.messages-panel {
+  background: white;
+  border-radius: 14px;
+  padding: 12px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  max-height: 640px;
+  overflow-y: auto;
+}
+
+.message-row {
+  width: 100%;
+  text-align: left;
+  border: 1px solid #e7e7e7;
+  border-radius: 12px;
+  background: #fff;
+  padding: 12px;
+  margin-bottom: 10px;
+  cursor: pointer;
+}
+
+.message-row.active {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 1px rgba(25, 118, 210, 0.2);
+}
+
+.message-row-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+
+.message-row p {
+  margin: 0 0 4px;
+  color: #555;
+  font-size: 14px;
+}
+
+.message-row small {
+  color: #777;
+}
+
+.message-detail {
+  background: white;
+  border-radius: 14px;
+  padding: 24px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+.message-detail h3 {
+  margin-bottom: 8px;
+  font-size: 24px;
+  color: #1a1a1a;
+}
+
+.message-meta,
+.message-date {
+  color: #666;
+  margin-bottom: 8px;
+}
+
+.message-body {
+  white-space: pre-wrap;
+  background: #f9f9f9;
+  border: 1px solid #ededed;
+  border-radius: 10px;
+  padding: 14px;
+  min-height: 180px;
+  margin-top: 16px;
+  color: #2f2f2f;
+}
+
+.message-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.status-unread {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.status-read {
+  background: #d1ecf1;
+  color: #0c5460;
+}
+
+.status-resolved {
+  background: #d4edda;
+  color: #155724;
+}
+
 
 .contact-form textarea {
   width: 100%;
@@ -108,6 +227,10 @@
   .contact-grid {
     grid-template-columns: 1fr;
     gap: 40px;
+  }
+
+  .admin-inbox-layout {
+    grid-template-columns: 1fr;
   }
 }
 
