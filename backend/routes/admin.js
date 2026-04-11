@@ -13,6 +13,51 @@ const router = express.Router();
 router.use(authenticate);
 router.use(authorize('admin'));
 
+// ==================== GEOCODE (Nominatim proxy) ====================
+// @route   GET /api/admin/geocode/search
+// @desc    Proxy address search to OpenStreetMap Nominatim (usage policy compliant User-Agent)
+// @access  Private (Admin only)
+router.get(
+  '/geocode/search',
+  [
+    query('q').trim().notEmpty().withMessage('Query is required'),
+    query('limit').optional().isInt({ min: 1, max: 10 }),
+  ],
+  async (req, res) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+      }
+
+      const q = req.query.q;
+      const limit = Math.min(parseInt(req.query.limit, 10) || 5, 10);
+      const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
+        q
+      )}&limit=${limit}`;
+
+      const nominatimRes = await fetch(url, {
+        headers: {
+          Accept: 'application/json',
+          'User-Agent':
+            process.env.NOMINATIM_USER_AGENT ||
+            'ManobalNGO-Admin/1.0 (https://github.com/manobal; contact@manobalnepal.org)',
+        },
+      });
+
+      if (!nominatimRes.ok) {
+        return res.status(502).json({ message: 'Geocoding service unavailable' });
+      }
+
+      const data = await nominatimRes.json();
+      res.json({ results: Array.isArray(data) ? data : [] });
+    } catch (error) {
+      console.error('Geocode search error:', error);
+      res.status(500).json({ message: 'Server error', error: error.message });
+    }
+  }
+);
+
 // ==================== ADMIN DASHBOARD ====================
 // @route   GET /api/admin/dashboard
 // @desc    Get admin dashboard metrics

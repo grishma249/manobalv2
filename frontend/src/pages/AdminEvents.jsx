@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import AppShell from '../components/AppShell'
+import EventLocationPicker from '../components/EventLocationPicker'
 import axios from 'axios'
 import './AdminEvents.css'
 
@@ -545,51 +546,16 @@ const AdminEvents = () => {
                     />
                   </div>
                 </div>
-                <div className="form-group">
-                  <label htmlFor="location">Location *</label>
-                  <input
-                    type="text"
-                    id="location"
-                    value={createFormData.location}
-                    onChange={(e) =>
-                      setCreateFormData({ ...createFormData, location: e.target.value })
-                    }
-                    placeholder="Event venue or address"
-                    required
-                  />
-                </div>
-                <div className="form-row">
-                  <div className="form-group">
-                    <label htmlFor="latitude">Latitude</label>
-                    <input
-                      type="number"
-                      id="latitude"
-                      value={createFormData.latitude}
-                      step="any"
-                      min="-90"
-                      max="90"
-                      onChange={(e) =>
-                        setCreateFormData({ ...createFormData, latitude: e.target.value })
-                      }
-                      placeholder="e.g., 27.7172"
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label htmlFor="longitude">Longitude</label>
-                    <input
-                      type="number"
-                      id="longitude"
-                      value={createFormData.longitude}
-                      step="any"
-                      min="-180"
-                      max="180"
-                      onChange={(e) =>
-                        setCreateFormData({ ...createFormData, longitude: e.target.value })
-                      }
-                      placeholder="e.g., 85.3240"
-                    />
-                  </div>
-                </div>
+                <EventLocationPicker
+                  mapKey="admin-create-event"
+                  location={createFormData.location}
+                  latitude={createFormData.latitude}
+                  longitude={createFormData.longitude}
+                  locationInputId="location"
+                  onChange={(patch) =>
+                    setCreateFormData((prev) => ({ ...prev, ...patch }))
+                  }
+                />
 
                 <div className="form-group">
                   <label htmlFor="eventImage">Event Image (JPG/JPEG/PNG, max 2MB)</label>
@@ -822,46 +788,14 @@ const AdminEvents = () => {
                     />
                   </div>
                 </div>
-                <div className="form-group">
-                  <label htmlFor="edit-location">Location *</label>
-                  <input
-                    type="text"
-                    id="edit-location"
-                    value={editFormData.location}
-                    onChange={(e) => setEditFormData({ ...editFormData, location: e.target.value })}
-                    required
-                  />
-                </div>
-                <div className="form-row">
-                  <div className="form-group">
-                    <label htmlFor="edit-latitude">Latitude</label>
-                    <input
-                      type="number"
-                      id="edit-latitude"
-                      value={editFormData.latitude}
-                      step="any"
-                      min="-90"
-                      max="90"
-                      onChange={(e) => setEditFormData({ ...editFormData, latitude: e.target.value })}
-                      placeholder="e.g., 27.7172"
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label htmlFor="edit-longitude">Longitude</label>
-                    <input
-                      type="number"
-                      id="edit-longitude"
-                      value={editFormData.longitude}
-                      step="any"
-                      min="-180"
-                      max="180"
-                      onChange={(e) =>
-                        setEditFormData({ ...editFormData, longitude: e.target.value })
-                      }
-                      placeholder="e.g., 85.3240"
-                    />
-                  </div>
-                </div>
+                <EventLocationPicker
+                  mapKey={selectedEvent?._id || 'edit'}
+                  location={editFormData.location}
+                  latitude={editFormData.latitude}
+                  longitude={editFormData.longitude}
+                  locationInputId="edit-location"
+                  onChange={(patch) => setEditFormData((prev) => ({ ...prev, ...patch }))}
+                />
                 <div className="form-group">
                   <label htmlFor="edit-eventImage">Replace Event Image (optional)</label>
                   <input
