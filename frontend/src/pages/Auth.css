@@ -28,7 +28,7 @@
   max-width: 520px;
   margin: 60px auto 80px auto;
   padding: 50px 45px;
-  background: #ffffff;
+  background: var(--surface-color);
   border-radius: 18px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
   transition: all 0.25s ease;
@@ -86,14 +86,14 @@
   border-radius: 10px;
   border: 1.8px solid #e0e0e0;
   font-size: 14px;
-  background: #fafafa;
+  background: var(--bg-color);
   transition: all 0.2s ease;
 }
 
 .form-group input:focus,
 .form-group select:focus {
   outline: none;
-  background: #ffffff;
+  background: var(--surface-color);
   border-color: var(--primary-color);
   box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.15);
 }

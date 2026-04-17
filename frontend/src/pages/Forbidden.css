@@ -1,6 +1,6 @@
 .forbidden-page {
   min-height: 100vh;
-  background: #fafafa;
+  background: var(--bg-color);
 }
 
 .forbidden-content {
@@ -10,7 +10,7 @@
 .forbidden-card {
   max-width: 600px;
   margin: 0 auto;
-  background: white;
+  background: var(--surface-color);
   border-radius: 20px;
   box-shadow: 0 6px 30px rgba(0, 0, 0, 0.08);
   padding: 48px 40px;

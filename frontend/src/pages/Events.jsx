@@ -175,7 +175,7 @@ const Events = () => {
                           </div>
                         )}
                       </div>
-                        {isVolunteer && (
+                      {isVolunteer && (
                         <div className="event-actions">
                           {event.isRegistered ? (
                             <div className="registered-badge">

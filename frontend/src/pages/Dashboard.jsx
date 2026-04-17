@@ -236,36 +236,36 @@ const Dashboard = () => {
                   {(eventParticipationData.participations?.filter(
                     (p) => p.participationType === 'DONOR'
                   ).length > 0) && (
-                    <div className="dashboard-section">
-                      <div className="section-header">
-                        <h3>Events Supported</h3>
-                        <Link to="/events/public" className="section-link">Browse events</Link>
-                      </div>
-                      <div className="recent-list">
-                        {eventParticipationData.participations
-                          .filter((p) => p.participationType === 'DONOR')
-                          .slice(0, 5)
-                          .map((p) => (
-                            <div key={p._id} className="recent-item">
-                              <div className="recent-item-main">
-                                <span className="recent-title">{p.event?.title || 'Event'}</span>
-                                <span
-                                  className="recent-badge"
-                                  style={{ backgroundColor: getStatusColor(p.status) }}
-                                >
-                                  {p.status}
+                      <div className="dashboard-section">
+                        <div className="section-header">
+                          <h3>Events Supported</h3>
+                          <Link to="/events/public" className="section-link">Browse events</Link>
+                        </div>
+                        <div className="recent-list">
+                          {eventParticipationData.participations
+                            .filter((p) => p.participationType === 'DONOR')
+                            .slice(0, 5)
+                            .map((p) => (
+                              <div key={p._id} className="recent-item">
+                                <div className="recent-item-main">
+                                  <span className="recent-title">{p.event?.title || 'Event'}</span>
+                                  <span
+                                    className="recent-badge"
+                                    style={{ backgroundColor: getStatusColor(p.status) }}
+                                  >
+                                    {p.status}
+                                  </span>
+                                </div>
+                                <span className="recent-meta">
+                                  {p.event?.date
+                                    ? new Date(p.event.date).toLocaleDateString()
+                                    : ''} • {getEventTypeDisplay(p.event?.eventType)}
                                 </span>
                               </div>
-                              <span className="recent-meta">
-                                {p.event?.date
-                                  ? new Date(p.event.date).toLocaleDateString()
-                                  : ''} • {getEventTypeDisplay(p.event?.eventType)}
-                              </span>
-                            </div>
-                          ))}
+                            ))}
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    )}
 
                   <div className="dashboard-card quick-actions-card">
                     <h3>Quick Actions</h3>
@@ -373,36 +373,36 @@ const Dashboard = () => {
                   {(eventParticipationData.participations?.filter(
                     (p) => p.participationType === 'ATTENDEE'
                   ).length > 0) && (
-                    <div className="dashboard-section">
-                      <div className="section-header">
-                        <h3>Events Attending</h3>
-                        <Link to="/events/public" className="section-link">Browse events</Link>
-                      </div>
-                      <div className="recent-list">
-                        {eventParticipationData.participations
-                          .filter((p) => p.participationType === 'ATTENDEE')
-                          .slice(0, 5)
-                          .map((p) => (
-                            <div key={p._id} className="recent-item">
-                              <div className="recent-item-main">
-                                <span className="recent-title">{p.event?.title || 'Event'}</span>
-                                <span
-                                  className="recent-badge"
-                                  style={{ backgroundColor: getStatusColor(p.status) }}
-                                >
-                                  {p.status}
+                      <div className="dashboard-section">
+                        <div className="section-header">
+                          <h3>Events Attending</h3>
+                          <Link to="/events/public" className="section-link">Browse events</Link>
+                        </div>
+                        <div className="recent-list">
+                          {eventParticipationData.participations
+                            .filter((p) => p.participationType === 'ATTENDEE')
+                            .slice(0, 5)
+                            .map((p) => (
+                              <div key={p._id} className="recent-item">
+                                <div className="recent-item-main">
+                                  <span className="recent-title">{p.event?.title || 'Event'}</span>
+                                  <span
+                                    className="recent-badge"
+                                    style={{ backgroundColor: getStatusColor(p.status) }}
+                                  >
+                                    {p.status}
+                                  </span>
+                                </div>
+                                <span className="recent-meta">
+                                  {p.event?.date
+                                    ? new Date(p.event.date).toLocaleDateString()
+                                    : ''} • {getEventTypeDisplay(p.event?.eventType)}
                                 </span>
                               </div>
-                              <span className="recent-meta">
-                                {p.event?.date
-                                  ? new Date(p.event.date).toLocaleDateString()
-                                  : ''} • {getEventTypeDisplay(p.event?.eventType)}
-                              </span>
-                            </div>
-                          ))}
+                            ))}
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    )}
 
                   <div className="dashboard-card quick-actions-card">
                     <h3>Quick Actions</h3>

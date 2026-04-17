@@ -1,6 +1,6 @@
 .school-request-page {
   min-height: 100vh;
-  background: #fafafa;
+  background: var(--bg-color);
 }
 
 .page-header {
@@ -33,7 +33,7 @@
 
 .request-form-card,
 .request-status-card {
-  background: white;
+  background: var(--surface-color);
   padding: 28px 24px;
   border-radius: 16px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
@@ -117,7 +117,7 @@
   gap: 12px;
   margin-bottom: 20px;
   padding: 16px;
-  background: #f8f9fa;
+  background: var(--muted-bg);
   border-radius: 12px;
 }
 

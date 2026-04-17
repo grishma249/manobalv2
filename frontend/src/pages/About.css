@@ -1,6 +1,6 @@
 .about-page {
   min-height: 100vh;
-  background: #fafafa;
+  background: var(--bg-color);
 }
 
 .about-hero {
@@ -84,7 +84,7 @@
 }
 
 .value-card {
-  background: white;
+  background: var(--surface-color);
   padding: 40px;
   border-radius: 16px;
   text-align: center;
