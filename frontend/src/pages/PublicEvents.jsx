@@ -250,8 +250,9 @@ const PublicEvents = () => {
     <>
       <div className="public-events-hero">
         <div className="container">
+          <span className="public-events-kicker">Manobal Programs</span>
           <h1>Upcoming Events</h1>
-          <p>Explore upcoming programs and workshops organized by Manobal Nepal.</p>
+          <p>Discover workshops, awareness drives, and community sessions you can join today.</p>
         </div>
       </div>
       <div className="public-events-content">
@@ -267,28 +268,33 @@ const PublicEvents = () => {
               <div className="events-grid">
                 {events.map((event) => (
                   <div key={event._id} className="event-card">
-                    <img
-                      className="event-card-image"
-                      src={event.imageUrl || fallbackImage}
-                      alt={event.title}
-                      loading="lazy"
-                      onError={(e) => {
-                        e.currentTarget.onerror = null
-                        e.currentTarget.src = fallbackImage
-                      }}
-                    />
-                    <h2>{event.title}</h2>
-                    <p className="event-meta">
-                      <span>{new Date(event.date).toLocaleDateString()}</span>
-                      <span>•</span>
-                      <span>{event.location}</span>
-                    </p>
-                    {allowsType(event, 'ATTENDEE') && (
-                      <div className="event-price">
-                        {event.isPaid ? `Paid Event: NPR ${event.price || 0}` : 'Free Event'}
+                    <div className="event-card-media">
+                      <img
+                        className="event-card-image"
+                        src={event.imageUrl || fallbackImage}
+                        alt={event.title}
+                        loading="lazy"
+                        onError={(e) => {
+                          e.currentTarget.onerror = null
+                          e.currentTarget.src = fallbackImage
+                        }}
+                      />
+                      <div className="event-card-overlay">
+                        <span className="event-chip">{new Date(event.date).toLocaleDateString()}</span>
+                        {allowsType(event, 'ATTENDEE') && (
+                          <span className={`event-chip ${event.isPaid ? 'event-chip-paid' : 'event-chip-free'}`}>
+                            {event.isPaid ? `NPR ${event.price || 0}` : 'Free'}
+                          </span>
+                        )}
                       </div>
-                    )}
-                    <p className="event-description">{event.description}</p>
+                    </div>
+
+                    <div className="event-card-body">
+                      <p className="event-location-line">{event.location}</p>
+                      <h2>{event.title}</h2>
+                      <p className="event-description">{event.description}</p>
+                    </div>
+
                     <EventLocationMap
                       latitude={event.latitude}
                       longitude={event.longitude}
@@ -298,7 +304,7 @@ const PublicEvents = () => {
                     />
 
                     <div className="participation-section">
-                      <h3>Participate</h3>
+                      <h3>Join This Event</h3>
                       <div className="participation-buttons">
                         {allowsType(event, 'VOLUNTEER') && (
                           <a href="/events" className="btn btn-outline btn-sm">

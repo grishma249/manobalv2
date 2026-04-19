@@ -3,6 +3,54 @@ const router = express.Router();
 const { body, query, validationResult } = require('express-validator');
 const { authenticate, authorize } = require('../middleware/auth');
 const Event = require('../models/Event');
+const uploadEventImage = require('../middleware/uploadEventImage');
+
+// ==================== GEOCODE (Nominatim proxy) ====================
+// @route   GET /api/schools/geocode/search
+// @desc    Same as admin geocode; used by the school event request map picker
+// @access  Private (School only)
+router.get(
+  '/geocode/search',
+  authenticate,
+  authorize('school'),
+  [
+    query('q').trim().notEmpty().withMessage('Query is required'),
+    query('limit').optional().isInt({ min: 1, max: 10 }),
+  ],
+  async (req, res) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+      }
+
+      const q = req.query.q;
+      const limit = Math.min(parseInt(req.query.limit, 10) || 5, 10);
+      const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
+        q
+      )}&limit=${limit}`;
+
+      const nominatimRes = await fetch(url, {
+        headers: {
+          Accept: 'application/json',
+          'User-Agent':
+            process.env.NOMINATIM_USER_AGENT ||
+            'ManobalNGO-School/1.0 (https://github.com/manobal; contact@manobalnepal.org)',
+        },
+      });
+
+      if (!nominatimRes.ok) {
+        return res.status(502).json({ message: 'Geocoding service unavailable' });
+      }
+
+      const data = await nominatimRes.json();
+      res.json({ results: Array.isArray(data) ? data : [] });
+    } catch (error) {
+      console.error('School geocode search error:', error);
+      res.status(500).json({ message: 'Server error', error: error.message });
+    }
+  }
+);
 
 // ==================== EVENT REQUEST ====================
 // @route   POST /api/schools/events/request
@@ -12,6 +60,7 @@ router.post(
   '/events/request',
   authenticate,
   authorize('school'),
+  uploadEventImage.single('image'),
   [
     body('title').trim().notEmpty().withMessage('Event title is required'),
     body('description').trim().notEmpty().withMessage('Description is required'),
@@ -20,8 +69,16 @@ router.post(
       .withMessage('Invalid event type'),
     body('date').isISO8601().withMessage('Valid date is required'),
     body('location').trim().notEmpty().withMessage('Location is required'),
+    body('latitude')
+      .optional({ checkFalsy: true })
+      .isFloat({ min: -90, max: 90 })
+      .withMessage('Latitude must be between -90 and 90'),
+    body('longitude')
+      .optional({ checkFalsy: true })
+      .isFloat({ min: -180, max: 180 })
+      .withMessage('Longitude must be between -180 and 180'),
     body('numberOfStudents')
-      .optional()
+      .optional({ checkFalsy: true })
       .isInt({ min: 0 })
       .withMessage('Number of students must be a positive integer'),
     body('targetAudience').optional().trim(),
@@ -34,13 +91,58 @@ router.post(
         return res.status(400).json({ errors: errors.array() });
       }
 
+      if (req.fileValidationError) {
+        return res.status(400).json({ message: req.fileValidationError });
+      }
+
+      const parsedLatitude =
+        req.body.latitude !== undefined && req.body.latitude !== ''
+          ? parseFloat(req.body.latitude)
+          : undefined;
+      const parsedLongitude =
+        req.body.longitude !== undefined && req.body.longitude !== ''
+          ? parseFloat(req.body.longitude)
+          : undefined;
+
+      const hasLat = Number.isFinite(parsedLatitude);
+      const hasLng = Number.isFinite(parsedLongitude);
+      if (hasLat !== hasLng) {
+        return res.status(400).json({
+          message: 'Both latitude and longitude are required when setting map location',
+        });
+      }
+
+      const baseUrl = `${req.protocol}://${req.get('host')}`;
+
+      const numberOfStudents =
+        req.body.numberOfStudents !== undefined && req.body.numberOfStudents !== ''
+          ? parseInt(req.body.numberOfStudents, 10)
+          : 0;
+
       const eventData = {
-        ...req.body,
+        title: req.body.title.trim(),
+        description: req.body.description.trim(),
+        eventType: req.body.eventType,
+        date: req.body.date,
+        location: req.body.location.trim(),
+        numberOfStudents: Number.isFinite(numberOfStudents) ? numberOfStudents : 0,
+        targetAudience: req.body.targetAudience?.trim() || undefined,
+        notes: req.body.notes?.trim() || undefined,
         requestedBy: req.user._id,
         status: 'pending',
-        // School-requested events default to volunteer participation; admin can expand later
         allowedParticipationTypes: ['VOLUNTEER'],
+        isPaid: false,
+        price: 0,
       };
+
+      if (hasLat) {
+        eventData.latitude = parsedLatitude;
+        eventData.longitude = parsedLongitude;
+      }
+
+      if (req.file) {
+        eventData.imageUrl = `${baseUrl}/uploads/events/${req.file.filename}`;
+      }
 
       const event = new Event(eventData);
       await event.save();

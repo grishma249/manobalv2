@@ -29,7 +29,7 @@ const MapFlyTo = ({ lat, lng, zoom }) => {
 }
 
 /**
- * Admin event form: Nominatim search + map; updates parent state for location, latitude, longitude.
+ * Event form: Nominatim search + map; updates parent state for location, latitude, longitude.
  * Lat/lng are not typed manually (hidden + read-only summary).
  */
 const EventLocationPicker = ({
@@ -41,6 +41,8 @@ const EventLocationPicker = ({
   locationLabel = 'Location *',
   /** Remount map when switching records (e.g. edit different events). */
   mapKey = 'default',
+  /** API path for Nominatim proxy (school vs admin). */
+  geocodeSearchUrl = '/api/admin/geocode/search',
 }) => {
   const latNum = parseFloat(String(latitude), 10)
   const lngNum = parseFloat(String(longitude), 10)
@@ -62,7 +64,7 @@ const EventLocationPicker = ({
       setSearchLoading(true)
       setSearchError('')
       try {
-        const { data } = await axios.get('/api/admin/geocode/search', {
+        const { data } = await axios.get(geocodeSearchUrl, {
           params: { q: search.trim(), limit: 5 },
         })
         setResults(data.results || [])
@@ -75,7 +77,7 @@ const EventLocationPicker = ({
       }
     }, 650)
     return () => clearTimeout(handle)
-  }, [search])
+  }, [search, geocodeSearchUrl])
 
   const applyChange = useCallback(
     (patch) => {

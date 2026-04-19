@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import AppShell from '../components/AppShell'
+import EventLocationPicker from '../components/EventLocationPicker'
 import axios from 'axios'
 import './SchoolRequestEvent.css'
 
@@ -10,10 +11,13 @@ const SchoolRequestEvent = () => {
     eventType: 'workshop',
     date: '',
     location: '',
+    latitude: '',
+    longitude: '',
     numberOfStudents: '',
     targetAudience: '',
     notes: '',
   })
+  const [eventImageFile, setEventImageFile] = useState(null)
   const [submitting, setSubmitting] = useState(false)
   const [events, setEvents] = useState([])
   const [summary, setSummary] = useState({})
@@ -46,19 +50,51 @@ const SchoolRequestEvent = () => {
       setError('')
       setSuccess('')
 
-      await axios.post('/api/schools/events/request', formData)
+      const hasLatitude = String(formData.latitude || '').trim() !== ''
+      const hasLongitude = String(formData.longitude || '').trim() !== ''
+      if (hasLatitude !== hasLongitude) {
+        setError('Please provide both latitude and longitude for map location.')
+        setSubmitting(false)
+        return
+      }
+
+      const formPayload = new FormData()
+      formPayload.append('title', formData.title)
+      formPayload.append('description', formData.description)
+      formPayload.append('eventType', formData.eventType)
+      formPayload.append('date', formData.date)
+      formPayload.append('location', formData.location)
+      formPayload.append('latitude', formData.latitude || '')
+      formPayload.append('longitude', formData.longitude || '')
+      formPayload.append('targetAudience', formData.targetAudience || '')
+      formPayload.append(
+        'numberOfStudents',
+        formData.numberOfStudents ? String(parseInt(formData.numberOfStudents, 10)) : ''
+      )
+      formPayload.append('notes', formData.notes || '')
+
+      if (eventImageFile) {
+        formPayload.append('image', eventImageFile)
+      }
+
+      await axios.post('/api/schools/events/request', formPayload, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      })
       setSuccess('Event request submitted successfully!')
+      setEventImageFile(null)
       setFormData({
         title: '',
         description: '',
         eventType: 'workshop',
         date: '',
         location: '',
+        latitude: '',
+        longitude: '',
         numberOfStudents: '',
         targetAudience: '',
         notes: '',
       })
-      fetchSchoolEvents() // Refresh the list
+      fetchSchoolEvents()
     } catch (err) {
       const errorMsg = err.response?.data?.errors
         ? err.response.data.errors.map((e) => e.msg).join(', ')
@@ -129,43 +165,56 @@ const SchoolRequestEvent = () => {
                       required
                     />
                   </div>
-                  <div className="form-group">
-                    <label htmlFor="eventType">Event Type *</label>
-                    <select
-                      id="eventType"
-                      value={formData.eventType}
-                      onChange={(e) => setFormData({ ...formData, eventType: e.target.value })}
-                      required
-                    >
-                      <option value="workshop">Workshop</option>
-                      <option value="awareness">Awareness Program</option>
-                      <option value="training">Training</option>
-                      <option value="other">Other</option>
-                    </select>
-                  </div>
                   <div className="form-row">
                     <div className="form-group">
-                      <label htmlFor="date">Preferred Date *</label>
+                      <label htmlFor="eventType">Event Type *</label>
+                      <select
+                        id="eventType"
+                        value={formData.eventType}
+                        onChange={(e) => setFormData({ ...formData, eventType: e.target.value })}
+                        required
+                      >
+                        <option value="workshop">Workshop</option>
+                        <option value="awareness">Awareness Program</option>
+                        <option value="training">Training</option>
+                        <option value="other">Other</option>
+                      </select>
+                    </div>
+                    <div className="form-group">
+                      <label htmlFor="date">Preferred Date &amp; Time *</label>
                       <input
-                        type="date"
+                        type="datetime-local"
                         id="date"
                         value={formData.date}
                         onChange={(e) => setFormData({ ...formData, date: e.target.value })}
                         required
                       />
                     </div>
-                    <div className="form-group">
-                      <label htmlFor="location">Location *</label>
-                      <input
-                        type="text"
-                        id="location"
-                        value={formData.location}
-                        onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                        placeholder="School address or venue"
-                        required
-                      />
-                    </div>
                   </div>
+
+                  <EventLocationPicker
+                    mapKey="school-request-event"
+                    geocodeSearchUrl="/api/schools/geocode/search"
+                    location={formData.location}
+                    latitude={formData.latitude}
+                    longitude={formData.longitude}
+                    locationInputId="school-request-location"
+                    onChange={(patch) => setFormData((prev) => ({ ...prev, ...patch }))}
+                  />
+
+                  <div className="form-group">
+                    <label htmlFor="eventImage">Event Image (JPG/JPEG/PNG, max 2MB)</label>
+                    <input
+                      type="file"
+                      id="eventImage"
+                      accept="image/jpeg,image/png"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0]
+                        setEventImageFile(file || null)
+                      }}
+                    />
+                  </div>
+
                   <div className="form-group">
                     <label htmlFor="numberOfStudents">Number of Students</label>
                     <input
@@ -253,7 +302,7 @@ const SchoolRequestEvent = () => {
                                   <br />
                                   <small>{getEventTypeDisplay(event.eventType)}</small>
                                 </td>
-                                <td>{new Date(event.date).toLocaleDateString()}</td>
+                                <td>{new Date(event.date).toLocaleString()}</td>
                                 <td>
                                   <span
                                     className="status-badge"
