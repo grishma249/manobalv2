@@ -174,13 +174,27 @@ router.post(
         return res.status(404).json({ message: 'Event not found for this payment' });
       }
 
-      let participation = null;
-      if (paymentAttempt.user) {
+      let participation = await EventParticipation.findOne({
+        event: eventDoc._id,
+        paymentId: paymentAttempt.transactionUuid,
+        participationType: 'ATTENDEE',
+      });
+
+      if (!participation && paymentAttempt.user) {
         participation = await EventParticipation.findOne({
           event: eventDoc._id,
           user: paymentAttempt.user,
           participationType: 'ATTENDEE',
         });
+      }
+
+      if (!participation && paymentAttempt.email) {
+        participation = await EventParticipation.findOne({
+          event: eventDoc._id,
+          email: paymentAttempt.email,
+          participationType: 'ATTENDEE',
+          paymentStatus: 'COMPLETED',
+        }).sort({ createdAt: -1 });
       }
 
       if (!participation) {
@@ -355,6 +369,19 @@ router.post(
         if (!payment || payment.status !== 'COMPLETED') {
           return res.status(400).json({
             message: 'Payment not completed. Participation was not created.',
+          });
+        }
+
+        const existingPaidParticipation = await EventParticipation.findOne({
+          event: event._id,
+          paymentId: paymentSessionId,
+          participationType: 'ATTENDEE',
+        });
+
+        if (existingPaidParticipation) {
+          return res.status(200).json({
+            message: 'Already registered for this paid event',
+            participation: existingPaidParticipation,
           });
         }
       }

@@ -5,6 +5,7 @@ const User = require('../models/User');
 const Event = require('../models/Event');
 const Donation = require('../models/Donation');
 const VolunteerParticipation = require('../models/VolunteerParticipation');
+const EventParticipation = require('../models/EventParticipation');
 const uploadEventImage = require('../middleware/uploadEventImage');
 
 const router = express.Router();
@@ -664,7 +665,7 @@ router.patch(
 );
 
 // @route   GET /api/admin/events/:id/participations
-// @desc    Get all volunteer participations (registrations) for an event
+// @desc    Get volunteer and attendee registrations for an event
 // @access  Private (Admin only)
 router.get('/events/:id/participations', async (req, res) => {
   try {
@@ -675,15 +676,28 @@ router.get('/events/:id/participations', async (req, res) => {
       return res.status(404).json({ message: 'Event not found' });
     }
 
-    const participations = await VolunteerParticipation.find({ event: id })
+    const volunteerParticipations = await VolunteerParticipation.find({ event: id })
       .populate('volunteer', 'name email')
       .sort({ registeredAt: -1 });
 
-    const pendingCount = participations.filter((p) => p.status === 'pending').length;
+    const attendeeParticipations = await EventParticipation.find({
+      event: id,
+      participationType: 'ATTENDEE',
+    })
+      .populate('user', 'name email phone')
+      .sort({ createdAt: -1 });
+
+    const pendingCount = volunteerParticipations.filter((p) => p.status === 'pending').length;
 
     res.json({
-      participations,
+      volunteerParticipations,
+      attendeeParticipations,
       pendingCount,
+      summary: {
+        total: volunteerParticipations.length + attendeeParticipations.length,
+        volunteers: volunteerParticipations.length,
+        attendees: attendeeParticipations.length,
+      },
     });
   } catch (error) {
     console.error('Get event participations error:', error);

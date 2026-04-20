@@ -317,6 +317,23 @@
   overflow-y: auto;
 }
 
+.registration-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: var(--muted-bg);
+  font-size: 14px;
+}
+
+.registrations-section-title {
+  margin: 12px 0 8px;
+  font-size: 16px;
+  color: #333;
+}
+
 .registration-item {
   display: flex;
   justify-content: space-between;
@@ -330,6 +347,12 @@
 
 .registration-email {
   font-size: 13px;
+  color: #666;
+}
+
+.registration-contact {
+  margin-top: 4px;
+  font-size: 12px;
   color: #666;
 }
 

@@ -37,7 +37,9 @@ const AdminEvents = () => {
   const [createError, setCreateError] = useState('')
   const [editError, setEditError] = useState('')
   const [showRegistrationsModal, setShowRegistrationsModal] = useState(false)
-  const [eventParticipations, setEventParticipations] = useState([])
+  const [volunteerParticipations, setVolunteerParticipations] = useState([])
+  const [attendeeParticipations, setAttendeeParticipations] = useState([])
+  const [registrationSummary, setRegistrationSummary] = useState({ total: 0, volunteers: 0, attendees: 0 })
   const [pendingCount, setPendingCount] = useState(0)
   const [loadingParticipations, setLoadingParticipations] = useState(false)
   const [editFormData, setEditFormData] = useState({
@@ -115,25 +117,56 @@ const AdminEvents = () => {
     setSelectedEvent(event)
     setShowRegistrationsModal(true)
     setLoadingParticipations(true)
+    await fetchEventRegistrations(event._id)
+    setLoadingParticipations(false)
+  }
+
+  const fetchEventRegistrations = async (eventId) => {
     try {
-      const response = await axios.get(`/api/admin/events/${event._id}/participations`)
-      setEventParticipations(response.data.participations)
+      const response = await axios.get(`/api/admin/events/${eventId}/participations`)
+      const attendeeRows = response.data.attendeeParticipations || []
+      const seenPaymentKeys = new Set()
+      const dedupedAttendees = attendeeRows.filter((row) => {
+        const key =
+          row.paymentId ||
+          `${row.user?._id || row.email || row.name || 'unknown'}-${row.participationType || 'ATTENDEE'}`
+        if (seenPaymentKeys.has(key)) return false
+        seenPaymentKeys.add(key)
+        return true
+      })
+
+      setVolunteerParticipations(response.data.volunteerParticipations || [])
+      setAttendeeParticipations(dedupedAttendees)
       setPendingCount(response.data.pendingCount || 0)
+      setRegistrationSummary({
+        total: (response.data.volunteerParticipations || []).length + dedupedAttendees.length,
+        volunteers: (response.data.volunteerParticipations || []).length,
+        attendees: dedupedAttendees.length,
+      })
     } catch (err) {
       alert(err.response?.data?.message || 'Failed to load registrations')
-      setEventParticipations([])
-    } finally {
-      setLoadingParticipations(false)
+      setVolunteerParticipations([])
+      setAttendeeParticipations([])
+      setPendingCount(0)
+      setRegistrationSummary({ total: 0, volunteers: 0, attendees: 0 })
     }
   }
+
+  useEffect(() => {
+    if (!showRegistrationsModal || !selectedEvent?._id) return undefined
+
+    const intervalId = setInterval(() => {
+      fetchEventRegistrations(selectedEvent._id)
+    }, 10000)
+
+    return () => clearInterval(intervalId)
+  }, [showRegistrationsModal, selectedEvent?._id])
 
   const handleApproveParticipation = async (participationId) => {
     try {
       await axios.patch(`/api/admin/participations/${participationId}/approve`)
       if (selectedEvent) {
-        const response = await axios.get(`/api/admin/events/${selectedEvent._id}/participations`)
-        setEventParticipations(response.data.participations)
-        setPendingCount(response.data.pendingCount || 0)
+        await fetchEventRegistrations(selectedEvent._id)
       }
     } catch (err) {
       alert(err.response?.data?.message || 'Failed to approve registration')
@@ -144,9 +177,7 @@ const AdminEvents = () => {
     try {
       await axios.patch(`/api/admin/participations/${participationId}/reject`)
       if (selectedEvent) {
-        const response = await axios.get(`/api/admin/events/${selectedEvent._id}/participations`)
-        setEventParticipations(response.data.participations)
-        setPendingCount(response.data.pendingCount || 0)
+        await fetchEventRegistrations(selectedEvent._id)
       }
     } catch (err) {
       alert(err.response?.data?.message || 'Failed to reject registration')
@@ -929,59 +960,107 @@ const AdminEvents = () => {
             <div className="modal-content" onClick={(e) => e.stopPropagation()}>
               <h2>Manage Registrations - {selectedEvent.title}</h2>
               <p className="modal-subtitle">
-                Volunteers who self-register appear below. Approve or reject pending requests.
+                Volunteer and attendee registrations are shown below and auto-refresh every 10 seconds.
               </p>
+              <div className="registration-summary">
+                <span><strong>Total:</strong> {registrationSummary.total}</span>
+                <span><strong>Volunteers:</strong> {registrationSummary.volunteers}</span>
+                <span><strong>Attendees:</strong> {registrationSummary.attendees}</span>
+                <span><strong>Pending volunteer approvals:</strong> {pendingCount}</span>
+              </div>
               {loadingParticipations ? (
                 <div className="loading-container">
                   <div className="spinner"></div>
                   <p>Loading registrations...</p>
                 </div>
-              ) : eventParticipations.length === 0 ? (
-                <p className="empty-state">No volunteer registrations for this event yet.</p>
+              ) : volunteerParticipations.length === 0 && attendeeParticipations.length === 0 ? (
+                <p className="empty-state">No registrations for this event yet.</p>
               ) : (
-                <div className="registrations-list">
-                  {eventParticipations.map((p) => (
-                    <div key={p._id} className="registration-item">
-                      <div>
-                        <strong>{p.volunteer?.name}</strong>
-                        <span className="registration-email"> ({p.volunteer?.email})</span>
-                      </div>
-                      <div className="registration-meta">
-                        <span
-                          className={`status-badge status-${p.status}`}
-                          style={{
-                            backgroundColor:
-                              p.status === 'pending'
-                                ? '#ffc107'
-                                : p.status === 'registered' || p.status === 'confirmed'
-                                ? '#17a2b8'
-                                : p.status === 'attended'
-                                ? '#28a745'
-                                : '#6c757d',
-                          }}
-                        >
-                          {p.status}
-                        </span>
-                        {p.status === 'pending' && (
-                          <span className="registration-actions">
-                            <button
-                              onClick={() => handleApproveParticipation(p._id)}
-                              className="btn btn-success btn-sm"
+                <>
+                  <h3 className="registrations-section-title">Volunteer Registrations</h3>
+                  {volunteerParticipations.length === 0 ? (
+                    <p className="empty-state">No volunteer registrations yet.</p>
+                  ) : (
+                    <div className="registrations-list">
+                      {volunteerParticipations.map((p) => (
+                        <div key={p._id} className="registration-item">
+                          <div>
+                            <strong>{p.volunteer?.name}</strong>
+                            <span className="registration-email"> ({p.volunteer?.email})</span>
+                          </div>
+                          <div className="registration-meta">
+                            <span
+                              className={`status-badge status-${p.status}`}
+                              style={{
+                                backgroundColor:
+                                  p.status === 'pending'
+                                    ? '#ffc107'
+                                    : p.status === 'registered' || p.status === 'confirmed'
+                                    ? '#17a2b8'
+                                    : p.status === 'attended'
+                                    ? '#28a745'
+                                    : '#6c757d',
+                              }}
                             >
-                              Approve
-                            </button>
-                            <button
-                              onClick={() => handleRejectParticipation(p._id)}
-                              className="btn btn-danger btn-sm"
-                            >
-                              Reject
-                            </button>
-                          </span>
-                        )}
-                      </div>
+                              {p.status}
+                            </span>
+                            {p.status === 'pending' && (
+                              <span className="registration-actions">
+                                <button
+                                  onClick={() => handleApproveParticipation(p._id)}
+                                  className="btn btn-success btn-sm"
+                                >
+                                  Approve
+                                </button>
+                                <button
+                                  onClick={() => handleRejectParticipation(p._id)}
+                                  className="btn btn-danger btn-sm"
+                                >
+                                  Reject
+                                </button>
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
+                  )}
+
+                  <h3 className="registrations-section-title">Attendee Registrations (Paid/Free)</h3>
+                  {attendeeParticipations.length === 0 ? (
+                    <p className="empty-state">No attendee registrations yet.</p>
+                  ) : (
+                    <div className="registrations-list">
+                      {attendeeParticipations.map((p) => (
+                        <div key={p._id} className="registration-item">
+                          <div>
+                            <strong>{p.user?.name || p.name || 'Attendee'}</strong>
+                            <span className="registration-email">
+                              {' '}
+                              ({p.user?.email || p.email || 'No email'})
+                            </span>
+                            <div className="registration-contact">
+                              Phone: {p.user?.phone || p.phone || 'N/A'}
+                            </div>
+                          </div>
+                          <div className="registration-meta">
+                            <span className="status-badge" style={{ backgroundColor: '#17a2b8' }}>
+                              {p.status}
+                            </span>
+                            <span
+                              className="status-badge"
+                              style={{
+                                backgroundColor: p.paymentStatus === 'COMPLETED' ? '#28a745' : '#6c757d',
+                              }}
+                            >
+                              Payment: {p.paymentStatus || 'N/A'}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </>
               )}
               <div className="modal-actions" style={{ marginTop: '1rem' }}>
                 <button
