@@ -17,8 +17,22 @@ L.Icon.Default.mergeOptions({
 const MapAutoCenter = ({ lat, lng, zoom }) => {
   const map = useMap()
   useEffect(() => {
-    if (Number.isFinite(lat) && Number.isFinite(lng)) {
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) return
+
+    // Leaflet maps inside animated/flex/grid cards can mount before final size.
+    // Invalidate size after paint so tile layers and center align correctly.
+    const refreshMap = () => {
+      map.invalidateSize()
       map.setView([lat, lng], zoom, { animate: false })
+    }
+
+    refreshMap()
+    const rafId = window.requestAnimationFrame(refreshMap)
+    const timeoutId = window.setTimeout(refreshMap, 120)
+
+    return () => {
+      window.cancelAnimationFrame(rafId)
+      window.clearTimeout(timeoutId)
     }
   }, [lat, lng, zoom, map])
   return null

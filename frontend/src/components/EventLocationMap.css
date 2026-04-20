@@ -8,6 +8,23 @@
 
 .event-location-map .leaflet-container {
   font-family: inherit;
+  width: 100%;
+  height: 100%;
+}
+
+/* Prevent global img CSS (e.g. max-width: 100%) from distorting Leaflet tiles. */
+.event-location-map .leaflet-container img,
+.event-location-map .leaflet-pane img,
+.event-location-map .leaflet-tile {
+  max-width: none !important;
+  max-height: none !important;
+}
+
+.event-location-map .leaflet-tile-pane,
+.event-location-map .leaflet-map-pane,
+.event-location-map .leaflet-marker-pane,
+.event-location-map .leaflet-shadow-pane {
+  transform-origin: 50% 50%;
 }
 
 .event-map-popup {
