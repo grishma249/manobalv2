@@ -430,18 +430,9 @@ const PublicEvents = () => {
     </>
   )
 
-  if (!user) {
-    return (
-      <div className="public-events-page">
-        <Navigation />
-        {content}
-      </div>
-    )
-  }
-
   return (
     <div className="public-events-page">
-      <AppShell>{content}</AppShell>
+      {user ? <AppShell>{content}</AppShell> : <><Navigation />{content}</>}
 
       {/* ── Participation Modal (public / guest users) ── */}
       {showParticipateModal && selectedEvent && (

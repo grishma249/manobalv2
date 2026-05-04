@@ -385,36 +385,53 @@
 
 /* ─── Map ─────────────────────────────────────────────────────────────────── */
 .event-map-inline {
-  margin: 12px 20px 0;
-  border-radius: 14px;
-  overflow: hidden;
-  border: 1px solid rgba(25, 118, 210, 0.10);
+  /* Full-bleed: no side margins so it stretches edge-to-edge inside the card */
+  margin: 12px 0 0;
   padding: 0;
   line-height: 0;
-  position: relative;
-}
-
-/* Keep Leaflet perfectly centered inside the public event card map box. */
-.event-map-inline .event-location-map {
-  margin: 0 !important;
-  border: 0;
-  border-radius: inherit;
-  box-shadow: none;
-}
-
-.event-map-inline .leaflet-container {
+  overflow: hidden;
+  border-top: 1px solid rgba(25, 118, 210, 0.10);
+  border-left: none;
+  border-right: none;
+  border-bottom: none;
+  border-radius: 0;
+  width: 100%;
   display: block;
+  box-sizing: border-box;
+}
+
+/* Force every direct child (the EventLocationMap wrapper div) to fill width */
+.event-map-inline>* {
+  display: block !important;
   width: 100% !important;
-  height: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  max-width: none !important;
 }
 
-.event-map-inline .leaflet-map-pane,
-.event-map-inline .leaflet-tile-pane,
-.event-map-inline .leaflet-marker-pane,
-.event-map-inline .leaflet-shadow-pane {
-  transform-origin: 50% 50%;
+/* Specifically target the component's own class if present */
+.event-map-inline .event-location-map {
+  display: block !important;
+  width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
 }
 
+/* Leaflet root container */
+.event-map-inline .leaflet-container {
+  display: block !important;
+  width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* Prevent any global img max-width rules from breaking tile rendering */
 .event-map-inline .leaflet-container img,
 .event-map-inline .leaflet-pane img,
 .event-map-inline .leaflet-tile {

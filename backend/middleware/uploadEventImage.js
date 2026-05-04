@@ -34,7 +34,7 @@ const fileFilter = function (_req, file, cb) {
 // <2MB limit as requested
 const uploadEventImage = multer({
   storage,
-  limits: { fileSize: 2 * 1024 * 1024 },
+  limits: { fileSize: 5 * 1024 * 1024 },
   fileFilter,
 });
 
